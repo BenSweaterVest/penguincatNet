@@ -1,20 +1,24 @@
 /**
- * Restaurant Deletion API Endpoint
+ * Profile Management API
  *
- * Handles removal of individual restaurant records by ID.
+ * Provides CRUD operations for dining profile data with GitHub-based persistence.
  *
- * Endpoint: DELETE /api/restaurants/:id
+ * Endpoints:
+ * - GET  /api/profiles     - Retrieve all profile records (public)
+ * - POST /api/profiles     - Create new profile record (authenticated)
  *
- * Path Parameters:
- * - id: Integer restaurant identifier
- *
- * Authentication: Required (Bearer token)
+ * Data Storage:
+ * Utilizes GitHub Contents API for persistent storage in repository JSON file.
+ * All modifications are committed directly to the configured branch.
  *
  * Environment Variables:
  * - GITHUB_TOKEN: Personal access token with repo scope
  * - GITHUB_REPO: Target repository in "owner/repository" format
  * - GITHUB_BRANCH: Target branch for commits
- * - ADMIN_PASSWORD: Administrative credential for verification
+ * - ADMIN_PASSWORD: Administrative credential for write operations
+ *
+ * Authentication:
+ * Write operations require Bearer token obtained from /api/auth endpoint.
  */
 
 const RESTAURANT_FILE = 'restaurants.json';
@@ -105,13 +109,50 @@ async function updateGitHub(env, content, sha, message) {
 }
 
 /**
- * DELETE Request Handler
- * Removes restaurant record by ID with authentication validation
+ * GET Request Handler
+ * Retrieves all profile records from GitHub storage
+ * @param {Object} context - Cloudflare Pages Functions context
+ * @returns {Response} - JSON response with profile data
+ */
+export async function onRequestGet(context) {
+  const { env } = context;
+
+  try {
+    const { data } = await fetchFromGitHub(env);
+
+    return new Response(JSON.stringify({
+      profiles: data.profiles || []
+    }), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'public, max-age=60'
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching profiles:', error);
+
+    return new Response(JSON.stringify({
+      error: 'Failed to fetch profiles',
+      profiles: []
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  }
+}
+
+/**
+ * POST Request Handler
+ * Creates new profile record with authentication validation
  * @param {Object} context - Cloudflare Pages Functions context
  * @returns {Response} - JSON response with operation result
  */
-export async function onRequestDelete(context) {
-  const { request, env, params } = context;
+export async function onRequestPost(context) {
+  const { request, env } = context;
 
   // Verify authentication
   if (!verifyAuth(request, env)) {
@@ -127,19 +168,14 @@ export async function onRequestDelete(context) {
   }
 
   try {
-    const restaurantId = parseInt(params.id);
+    const newProfile = await request.json();
 
-    // Retrieve current data and file SHA
-    const { data, sha } = await fetchFromGitHub(env);
-
-    // Locate restaurant record by ID
-    const index = data.restaurants.findIndex(r => r.id === restaurantId);
-
-    if (index === -1) {
+    // Validate required fields per data schema
+    if (!newProfile.id || !newProfile.name || !newProfile.restaurantIds) {
       return new Response(JSON.stringify({
-        error: 'Restaurant not found'
+        error: 'Missing required fields'
       }), {
-        status: 404,
+        status: 400,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
@@ -147,20 +183,41 @@ export async function onRequestDelete(context) {
       });
     }
 
-    const deletedRestaurant = data.restaurants[index];
-    data.restaurants.splice(index, 1);
+    // Retrieve current data and file SHA
+    const { data, sha } = await fetchFromGitHub(env);
+
+    // Ensure profiles array exists
+    if (!data.profiles) {
+      data.profiles = [{id: 'all', name: 'All Restaurants', restaurantIds: []}];
+    }
+
+    // Check if profile with this ID already exists
+    if (data.profiles.find(p => p.id === newProfile.id)) {
+      return new Response(JSON.stringify({
+        error: 'Profile with this ID already exists'
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
+    // Append new profile to existing data
+    data.profiles.push(newProfile);
 
     // Commit changes to repository
     await updateGitHub(
       env,
       data,
       sha,
-      `Delete restaurant: ${deletedRestaurant.name}`
+      `Add profile: ${newProfile.name}`
     );
 
     return new Response(JSON.stringify({
       success: true,
-      deleted: deletedRestaurant
+      profile: newProfile
     }), {
       headers: {
         'Content-Type': 'application/json',
@@ -168,10 +225,10 @@ export async function onRequestDelete(context) {
       }
     });
   } catch (error) {
-    console.error('Error deleting restaurant:', error);
+    console.error('Error adding profile:', error);
 
     return new Response(JSON.stringify({
-      error: 'Failed to delete restaurant',
+      error: 'Failed to add profile',
       details: error.message
     }), {
       status: 500,
@@ -192,7 +249,7 @@ export async function onRequestOptions() {
   return new Response(null, {
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     }
   });

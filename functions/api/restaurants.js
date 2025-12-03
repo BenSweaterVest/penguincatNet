@@ -1,18 +1,34 @@
 /**
- * Restaurant data API with GitHub storage
- * GET /api/restaurants - Fetch all restaurants
- * POST /api/restaurants - Add a new restaurant (requires auth)
+ * Restaurant Data Management API
  *
- * Required environment variables:
- * - GITHUB_TOKEN: GitHub personal access token
- * - GITHUB_REPO: Repository in format "owner/repo"
- * - GITHUB_BRANCH: Branch name (e.g., "main" or "claude/...")
- * - ADMIN_PASSWORD: Password for verification
+ * Provides CRUD operations for restaurant data with GitHub-based persistence.
+ *
+ * Endpoints:
+ * - GET  /api/restaurants     - Retrieve all restaurant records (public)
+ * - POST /api/restaurants     - Create new restaurant record (authenticated)
+ *
+ * Data Storage:
+ * Utilizes GitHub Contents API for persistent storage in repository JSON file.
+ * All modifications are committed directly to the configured branch.
+ *
+ * Environment Variables:
+ * - GITHUB_TOKEN: Personal access token with repo scope
+ * - GITHUB_REPO: Target repository in "owner/repository" format
+ * - GITHUB_BRANCH: Target branch for commits
+ * - ADMIN_PASSWORD: Administrative credential for write operations
+ *
+ * Authentication:
+ * Write operations require Bearer token obtained from /api/auth endpoint.
  */
 
 const RESTAURANT_FILE = 'restaurants.json';
 
-// Verify authentication token
+/**
+ * Verify authentication token from request headers
+ * @param {Request} request - Incoming request object
+ * @param {Object} env - Environment variables
+ * @returns {boolean} - Authentication status
+ */
 function verifyAuth(request, env) {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -29,7 +45,11 @@ function verifyAuth(request, env) {
   }
 }
 
-// Fetch file from GitHub
+/**
+ * Retrieve restaurant data file from GitHub repository
+ * @param {Object} env - Environment variables containing GitHub credentials
+ * @returns {Object} - Object containing parsed data and file SHA
+ */
 async function fetchFromGitHub(env) {
   const url = `https://api.github.com/repos/${env.GITHUB_REPO}/contents/${RESTAURANT_FILE}?ref=${env.GITHUB_BRANCH}`;
 
@@ -53,7 +73,14 @@ async function fetchFromGitHub(env) {
   };
 }
 
-// Update file on GitHub
+/**
+ * Commit updated restaurant data to GitHub repository
+ * @param {Object} env - Environment variables containing GitHub credentials
+ * @param {Object} content - Updated restaurant data object
+ * @param {string} sha - Current file SHA for conflict detection
+ * @param {string} message - Commit message
+ * @returns {Object} - GitHub API response
+ */
 async function updateGitHub(env, content, sha, message) {
   const url = `https://api.github.com/repos/${env.GITHUB_REPO}/contents/${RESTAURANT_FILE}`;
 
@@ -81,7 +108,12 @@ async function updateGitHub(env, content, sha, message) {
   return await response.json();
 }
 
-// GET - Fetch restaurants
+/**
+ * GET Request Handler
+ * Retrieves all restaurant records from GitHub storage
+ * @param {Object} context - Cloudflare Pages Functions context
+ * @returns {Response} - JSON response with restaurant data
+ */
 export async function onRequestGet(context) {
   const { env } = context;
 
@@ -111,7 +143,12 @@ export async function onRequestGet(context) {
   }
 }
 
-// POST - Add restaurant
+/**
+ * POST Request Handler
+ * Creates new restaurant record with authentication validation
+ * @param {Object} context - Cloudflare Pages Functions context
+ * @returns {Response} - JSON response with operation result
+ */
 export async function onRequestPost(context) {
   const { request, env } = context;
 
@@ -131,7 +168,7 @@ export async function onRequestPost(context) {
   try {
     const newRestaurant = await request.json();
 
-    // Validate required fields
+    // Validate required fields per data schema
     if (!newRestaurant.name || !newRestaurant.foodTypes || !newRestaurant.serviceTypes) {
       return new Response(JSON.stringify({
         error: 'Missing required fields'
@@ -144,13 +181,13 @@ export async function onRequestPost(context) {
       });
     }
 
-    // Fetch current data
+    // Retrieve current data and file SHA
     const { data, sha } = await fetchFromGitHub(env);
 
-    // Add new restaurant
+    // Append new restaurant to existing data
     data.restaurants.push(newRestaurant);
 
-    // Update GitHub
+    // Commit changes to repository
     await updateGitHub(
       env,
       data,
@@ -183,7 +220,11 @@ export async function onRequestPost(context) {
   }
 }
 
-// Handle CORS preflight
+/**
+ * OPTIONS Request Handler
+ * Responds to CORS preflight requests
+ * @returns {Response} - CORS headers response
+ */
 export async function onRequestOptions() {
   return new Response(null, {
     headers: {

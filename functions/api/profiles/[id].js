@@ -1,12 +1,12 @@
 /**
- * Restaurant Deletion API Endpoint
+ * Profile Deletion API Endpoint
  *
- * Handles removal of individual restaurant records by ID.
+ * Handles removal of individual profile records by ID.
  *
- * Endpoint: DELETE /api/restaurants/:id
+ * Endpoint: DELETE /api/profiles/:id
  *
  * Path Parameters:
- * - id: Integer restaurant identifier
+ * - id: String profile identifier
  *
  * Authentication: Required (Bearer token)
  *
@@ -106,7 +106,7 @@ async function updateGitHub(env, content, sha, message) {
 
 /**
  * DELETE Request Handler
- * Removes restaurant record by ID with authentication validation
+ * Removes profile record by ID with authentication validation
  * @param {Object} context - Cloudflare Pages Functions context
  * @returns {Response} - JSON response with operation result
  */
@@ -127,17 +127,27 @@ export async function onRequestDelete(context) {
   }
 
   try {
-    const restaurantId = parseInt(params.id);
+    const profileId = params.id;
+
+    // Prevent deletion of "all" profile
+    if (profileId === 'all') {
+      return new Response(JSON.stringify({
+        error: 'Cannot delete the default "All Restaurants" profile'
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
 
     // Retrieve current data and file SHA
     const { data, sha } = await fetchFromGitHub(env);
 
-    // Locate restaurant record by ID
-    const index = data.restaurants.findIndex(r => r.id === restaurantId);
-
-    if (index === -1) {
+    if (!data.profiles) {
       return new Response(JSON.stringify({
-        error: 'Restaurant not found'
+        error: 'No profiles found'
       }), {
         status: 404,
         headers: {
@@ -147,20 +157,35 @@ export async function onRequestDelete(context) {
       });
     }
 
-    const deletedRestaurant = data.restaurants[index];
-    data.restaurants.splice(index, 1);
+    // Locate profile record by ID
+    const index = data.profiles.findIndex(p => p.id === profileId);
+
+    if (index === -1) {
+      return new Response(JSON.stringify({
+        error: 'Profile not found'
+      }), {
+        status: 404,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
+    const deletedProfile = data.profiles[index];
+    data.profiles.splice(index, 1);
 
     // Commit changes to repository
     await updateGitHub(
       env,
       data,
       sha,
-      `Delete restaurant: ${deletedRestaurant.name}`
+      `Delete profile: ${deletedProfile.name}`
     );
 
     return new Response(JSON.stringify({
       success: true,
-      deleted: deletedRestaurant
+      deleted: deletedProfile
     }), {
       headers: {
         'Content-Type': 'application/json',
@@ -168,10 +193,10 @@ export async function onRequestDelete(context) {
       }
     });
   } catch (error) {
-    console.error('Error deleting restaurant:', error);
+    console.error('Error deleting profile:', error);
 
     return new Response(JSON.stringify({
-      error: 'Failed to delete restaurant',
+      error: 'Failed to delete profile',
       details: error.message
     }), {
       status: 500,
