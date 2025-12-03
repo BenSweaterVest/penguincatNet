@@ -158,6 +158,26 @@
             font-size: 1.3em;
         }
 
+        .profile-section {
+            margin-bottom: 30px;
+        }
+
+        .profile-section select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+        }
+
+        .profile-section select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
         .filter-group {
             margin-bottom: 30px;
         }
@@ -397,6 +417,14 @@
         </div>
 
         <div class="sidebar">
+            <h3>Dining Profile</h3>
+            <div class="profile-section">
+                <select id="profileSelector" onchange="onProfileChange()">
+                    <option value="all">All Restaurants</option>
+                    <!-- Will be populated dynamically -->
+                </select>
+            </div>
+
             <h3>Filter by Food Type</h3>
             <div class="filter-group" id="foodTypeFilters">
                 <!-- Will be populated dynamically -->
@@ -438,11 +466,32 @@
                     </div>
 
                     <button class="btn btn-success btn-small" onclick="addRestaurant()">Add Restaurant</button>
-                    <button class="btn btn-secondary btn-small" onclick="logout()" style="margin-top: 10px;">Logout</button>
 
                     <div class="restaurant-list" id="restaurantList">
                         <!-- Will be populated dynamically -->
                     </div>
+
+                    <h3 style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">Manage Profiles</h3>
+
+                    <div class="form-group">
+                        <label>Profile Name</label>
+                        <input type="text" id="profileName" placeholder="e.g., With Sarah">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Included Restaurants</label>
+                        <div class="checkbox-group" id="profileRestaurantCheckboxes">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success btn-small" onclick="addProfile()">Add Profile</button>
+
+                    <div class="restaurant-list" id="profileList" style="margin-top: 20px;">
+                        <!-- Will be populated dynamically -->
+                    </div>
+
+                    <button class="btn btn-secondary btn-small" onclick="logout()" style="margin-top: 20px;">Logout</button>
                 </div>
             </div>
         </div>
@@ -451,6 +500,8 @@
     <script>
         // Global variables
         let restaurants = [];
+        let profiles = [];
+        let selectedProfile = 'all';
         let selectedService = '';
         let currentRotation = 0;
         let isSpinning = false;
@@ -465,6 +516,7 @@
         // Initialize
         async function init() {
             await loadRestaurants();
+            updateProfileSelector();
             updateFoodTypeFilters();
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
@@ -476,6 +528,7 @@
                 const response = await fetch('/api/restaurants');
                 const data = await response.json();
                 restaurants = data.restaurants || [];
+                profiles = data.profiles || [{id: 'all', name: 'All Restaurants', restaurantIds: []}];
             } catch (error) {
                 console.error('Error loading restaurants:', error);
                 // Fallback to local data
@@ -486,6 +539,7 @@
                     {id: 4, name: "Burger Palace", foodTypes: ["American", "Burgers"], serviceTypes: ["takeout", "delivery", "dine-in"]},
                     {id: 5, name: "Sushi Paradise", foodTypes: ["Japanese", "Asian", "Sushi"], serviceTypes: ["takeout", "delivery", "dine-in"]}
                 ];
+                profiles = [{id: 'all', name: 'All Restaurants', restaurantIds: []}];
             }
         }
 
@@ -501,12 +555,44 @@
             document.getElementById('serviceModal').classList.add('active');
         }
 
+        // Profile management
+        function updateProfileSelector() {
+            const selector = document.getElementById('profileSelector');
+            selector.innerHTML = '';
+
+            profiles.forEach(profile => {
+                const option = document.createElement('option');
+                option.value = profile.id;
+                option.textContent = profile.name;
+                if (profile.id === selectedProfile) {
+                    option.selected = true;
+                }
+                selector.appendChild(option);
+            });
+        }
+
+        function onProfileChange() {
+            selectedProfile = document.getElementById('profileSelector').value;
+            drawWheel();
+        }
+
         // Get filtered restaurants
         function getFilteredRestaurants() {
             const selectedFoodTypes = Array.from(document.querySelectorAll('#foodTypeFilters input:checked'))
                 .map(cb => cb.value);
 
+            // Get profile-filtered restaurant IDs
+            const profile = profiles.find(p => p.id === selectedProfile);
+            const profileRestaurantIds = profile && profile.restaurantIds.length > 0
+                ? profile.restaurantIds
+                : null;
+
             return restaurants.filter(r => {
+                // Filter by profile (if specific profile selected)
+                if (profileRestaurantIds && !profileRestaurantIds.includes(r.id)) {
+                    return false;
+                }
+
                 // Filter by service type
                 if (!r.serviceTypes.includes(selectedService)) {
                     return false;
@@ -710,6 +796,7 @@
                     document.getElementById('adminPanel').classList.add('active');
                     document.getElementById('adminBtn').style.display = 'none';
                     updateRestaurantList();
+                    updateProfileList();
                 } else {
                     document.getElementById('loginError').textContent = 'Invalid password';
                     document.getElementById('loginError').style.display = 'block';
@@ -827,6 +914,143 @@
                         <div class="restaurant-item-types">${r.foodTypes.join(', ')} • ${r.serviceTypes.join(', ')}</div>
                     </div>
                     <button class="btn btn-danger btn-small" onclick="deleteRestaurant(${r.id})">Delete</button>
+                `;
+                container.appendChild(item);
+            });
+
+            // Also update profile restaurant checkboxes
+            updateProfileRestaurantCheckboxes();
+        }
+
+        // Profile management functions
+        function updateProfileRestaurantCheckboxes() {
+            const container = document.getElementById('profileRestaurantCheckboxes');
+            container.innerHTML = '';
+
+            restaurants.forEach(r => {
+                const label = document.createElement('label');
+                label.innerHTML = `
+                    <input type="checkbox" value="${r.id}" class="profile-restaurant-checkbox">
+                    ${r.name}
+                `;
+                container.appendChild(label);
+            });
+        }
+
+        async function addProfile() {
+            const name = document.getElementById('profileName').value.trim();
+            const selectedRestaurants = Array.from(document.querySelectorAll('.profile-restaurant-checkbox:checked'))
+                .map(cb => parseInt(cb.value));
+
+            if (!name) {
+                alert('Please enter a profile name');
+                return;
+            }
+
+            if (selectedRestaurants.length === 0) {
+                alert('Please select at least one restaurant');
+                return;
+            }
+
+            // Generate profile ID from name
+            const profileId = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+            // Check if profile already exists
+            if (profiles.find(p => p.id === profileId)) {
+                alert('A profile with this name already exists');
+                return;
+            }
+
+            const newProfile = {
+                id: profileId,
+                name: name,
+                restaurantIds: selectedRestaurants
+            };
+
+            try {
+                const response = await fetch('/api/profiles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(newProfile)
+                });
+
+                if (response.ok) {
+                    await loadRestaurants();
+                    updateProfileSelector();
+                    updateProfileList();
+
+                    // Clear form
+                    document.getElementById('profileName').value = '';
+                    document.querySelectorAll('.profile-restaurant-checkbox').forEach(cb => cb.checked = false);
+                } else {
+                    alert('Failed to add profile');
+                }
+            } catch (error) {
+                console.error('Error adding profile:', error);
+                alert('Failed to add profile');
+            }
+        }
+
+        async function deleteProfile(profileId) {
+            // Prevent deletion of "all" profile
+            if (profileId === 'all') {
+                alert('Cannot delete the default "All Restaurants" profile');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to delete this profile?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/profiles/${profileId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    await loadRestaurants();
+                    updateProfileSelector();
+                    updateProfileList();
+
+                    // Reset to "all" if deleted profile was selected
+                    if (selectedProfile === profileId) {
+                        selectedProfile = 'all';
+                        document.getElementById('profileSelector').value = 'all';
+                        drawWheel();
+                    }
+                } else {
+                    alert('Failed to delete profile');
+                }
+            } catch (error) {
+                console.error('Error deleting profile:', error);
+                alert('Failed to delete profile');
+            }
+        }
+
+        function updateProfileList() {
+            const container = document.getElementById('profileList');
+            container.innerHTML = '<h4 style="margin-bottom: 10px;">Current Profiles:</h4>';
+
+            profiles.filter(p => p.id !== 'all').forEach(profile => {
+                const restaurantNames = profile.restaurantIds
+                    .map(id => restaurants.find(r => r.id === id)?.name)
+                    .filter(name => name)
+                    .join(', ');
+
+                const item = document.createElement('div');
+                item.className = 'restaurant-item';
+                item.innerHTML = `
+                    <div class="restaurant-item-info">
+                        <div class="restaurant-item-name">${profile.name}</div>
+                        <div class="restaurant-item-types">${restaurantNames || 'No restaurants'}</div>
+                    </div>
+                    <button class="btn btn-danger btn-small" onclick="deleteProfile('${profile.id}')">Delete</button>
                 `;
                 container.appendChild(item);
             });

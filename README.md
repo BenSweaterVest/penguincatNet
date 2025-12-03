@@ -9,11 +9,12 @@ This is a single-page application built for Cloudflare Pages with serverless fun
 ## Core Features
 
 - **Randomized Selection Interface**: Canvas-based spinning wheel for restaurant selection
+- **Dining Profiles**: Configure custom restaurant subsets for different scenarios (e.g., dining with specific people, quick lunch options)
 - **Service Type Filtering**: Pre-selection modal for takeout, delivery, or dine-in options
 - **Cuisine Filtering**: Dynamic checkbox filters for food type categories
 - **Authentication System**: Token-based authentication for administrative functions
-- **Data Management**: CRUD operations for restaurant entries via admin panel
-- **GitHub Integration**: Restaurant data persisted in repository as JSON
+- **Data Management**: CRUD operations for restaurant and profile entries via admin panel
+- **GitHub Integration**: Restaurant and profile data persisted in repository as JSON
 - **Cloudflare Functions**: Serverless API endpoints for data operations
 
 ## Deployment Information
@@ -102,17 +103,22 @@ The application is configured to serve from `index.html` in the repository root.
 
 1. Access the deployed application URL
 2. Select service type preference from the initial modal (takeout, delivery, or dine-in)
-3. Apply cuisine filters via sidebar checkboxes if desired
-4. Activate the randomization mechanism via the spin button
-5. View selected restaurant details including contact information and service availability
+3. Optionally select a dining profile from the dropdown in the sidebar (e.g., "With Sarah", "Quick Lunch Options")
+4. Apply cuisine filters via sidebar checkboxes if desired
+5. Activate the randomization mechanism via the spin button
+6. View selected restaurant details including contact information and service availability
+
+**Dining Profiles**: Profiles allow you to create custom restaurant subsets for specific scenarios. For example, if dining with someone who travels from a different location, create a profile with restaurants along their route. The "All Restaurants" profile includes all available options.
 
 ### Administrative Operations
 
 1. Access admin panel via "Admin Login" button in sidebar
 2. Authenticate using the configured `ADMIN_PASSWORD` value
 3. Available administrative functions:
-   - **Add Restaurant**: Submit new restaurant entries with required metadata
+   - **Add Restaurant**: Submit new restaurant entries with required metadata (name, food types, service types, optional address and phone)
    - **Remove Restaurant**: Delete existing entries from the data store
+   - **Add Profile**: Create dining profiles by specifying a name and selecting included restaurants
+   - **Remove Profile**: Delete existing profiles (default "All Restaurants" profile cannot be deleted)
 4. Administrative session can be terminated via logout function
 
 ## Application Structure
@@ -120,13 +126,16 @@ The application is configured to serve from `index.html` in the repository root.
 ```
 .
 ├── index.html                      # Single-page application (client-side)
-├── restaurants.json                # Restaurant data store
+├── restaurants.json                # Restaurant and profile data store
 ├── functions/
 │   └── api/
 │       ├── auth.js                # Authentication endpoint
 │       ├── restaurants.js         # Restaurant CRUD operations (GET/POST)
-│       └── restaurants/
-│           └── [id].js            # Individual restaurant operations (DELETE)
+│       ├── restaurants/
+│       │   └── [id].js            # Individual restaurant operations (DELETE)
+│       ├── profiles.js            # Profile CRUD operations (GET/POST)
+│       └── profiles/
+│           └── [id].js            # Individual profile operations (DELETE)
 └── README.md                      # Documentation
 ```
 
@@ -151,7 +160,7 @@ The `restaurants.json` file maintains an array of restaurant objects with the fo
 }
 ```
 
-### Field Specifications
+#### Restaurant Field Specifications
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -161,6 +170,37 @@ The `restaurants.json` file maintains an array of restaurant objects with the fo
 | `serviceTypes` | Array[String] | Yes | Available service options: "takeout", "delivery", "dine-in" |
 | `address` | String | No | Physical location address |
 | `phone` | String | No | Contact telephone number |
+
+### Profile Object Structure
+
+The `restaurants.json` file also maintains an array of dining profile objects:
+
+```json
+{
+  "profiles": [
+    {
+      "id": "all",
+      "name": "All Restaurants",
+      "restaurantIds": []
+    },
+    {
+      "id": "sarah-enroute",
+      "name": "With Sarah (En Route)",
+      "restaurantIds": [1, 4, 5, 10]
+    }
+  ]
+}
+```
+
+#### Profile Field Specifications
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | String | Yes | Unique identifier, generated from profile name |
+| `name` | String | Yes | Display name for the dining profile |
+| `restaurantIds` | Array[Integer] | Yes | List of restaurant IDs included in this profile (empty array means all restaurants) |
+
+**Note**: The "all" profile with empty `restaurantIds` array is a special default profile that includes all restaurants. This profile cannot be deleted.
 
 ## Security Considerations
 
@@ -273,6 +313,11 @@ Note: Local development requires Node.js and npm to be installed.
 - **GET** `/api/restaurants` - Retrieve all restaurant data
 - **POST** `/api/restaurants` - Create new restaurant (requires auth)
 - **DELETE** `/api/restaurants/:id` - Remove restaurant by ID (requires auth)
+
+### Profile Operations
+- **GET** `/api/profiles` - Retrieve all dining profile data
+- **POST** `/api/profiles` - Create new dining profile (requires auth)
+- **DELETE** `/api/profiles/:id` - Remove profile by ID (requires auth)
 
 All API endpoints return JSON responses and include appropriate CORS headers.
 

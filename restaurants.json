@@ -1,4 +1,21 @@
 {
+  "profiles": [
+    {
+      "id": "all",
+      "name": "All Restaurants",
+      "restaurantIds": []
+    },
+    {
+      "id": "sarah-enroute",
+      "name": "With Sarah (En Route)",
+      "restaurantIds": [1, 4, 5, 10]
+    },
+    {
+      "id": "quick-lunch",
+      "name": "Quick Lunch Options",
+      "restaurantIds": [2, 4, 6, 10]
+    }
+  ],
   "restaurants": [
     {
       "id": 1,
