@@ -1,0 +1,84 @@
+{
+  "restaurants": [
+    {
+      "id": 1,
+      "name": "Mario's Italian Bistro",
+      "foodTypes": ["Italian", "Pizza"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "address": "123 Main St",
+      "phone": "(555) 123-4567"
+    },
+    {
+      "id": 2,
+      "name": "Golden Dragon",
+      "foodTypes": ["Chinese", "Asian"],
+      "serviceTypes": ["takeout", "delivery"],
+      "address": "456 Oak Ave",
+      "phone": "(555) 234-5678"
+    },
+    {
+      "id": 3,
+      "name": "Taco Fiesta",
+      "foodTypes": ["Mexican", "Latin"],
+      "serviceTypes": ["takeout", "dine-in"],
+      "address": "789 Pine Rd",
+      "phone": "(555) 345-6789"
+    },
+    {
+      "id": 4,
+      "name": "Burger Palace",
+      "foodTypes": ["American", "Burgers"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "address": "321 Elm St",
+      "phone": "(555) 456-7890"
+    },
+    {
+      "id": 5,
+      "name": "Sushi Paradise",
+      "foodTypes": ["Japanese", "Asian", "Sushi"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "address": "654 Maple Dr",
+      "phone": "(555) 567-8901"
+    },
+    {
+      "id": 6,
+      "name": "Thai Spice",
+      "foodTypes": ["Thai", "Asian"],
+      "serviceTypes": ["takeout", "delivery"],
+      "address": "987 Cedar Ln",
+      "phone": "(555) 678-9012"
+    },
+    {
+      "id": 7,
+      "name": "The Steakhouse",
+      "foodTypes": ["American", "Steakhouse"],
+      "serviceTypes": ["dine-in"],
+      "address": "147 Oak Blvd",
+      "phone": "(555) 789-0123"
+    },
+    {
+      "id": 8,
+      "name": "Mediterranean Grill",
+      "foodTypes": ["Mediterranean", "Greek"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "address": "258 Birch Way",
+      "phone": "(555) 890-1234"
+    },
+    {
+      "id": 9,
+      "name": "India Palace",
+      "foodTypes": ["Indian", "Asian"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "address": "369 Willow Ct",
+      "phone": "(555) 901-2345"
+    },
+    {
+      "id": 10,
+      "name": "Pizza Express",
+      "foodTypes": ["Italian", "Pizza"],
+      "serviceTypes": ["takeout", "delivery"],
+      "address": "741 Spruce Ave",
+      "phone": "(555) 012-3456"
+    }
+  ]
+}
