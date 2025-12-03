@@ -1,9 +1,27 @@
 /**
- * Authentication endpoint for admin access
- * POST /api/auth
+ * Authentication API Endpoint
  *
- * Required environment variables:
- * - ADMIN_PASSWORD: The password for admin access
+ * Validates administrative credentials and issues session tokens.
+ *
+ * Endpoint: POST /api/auth
+ *
+ * Request Body:
+ * {
+ *   "password": string
+ * }
+ *
+ * Response:
+ * {
+ *   "authenticated": boolean,
+ *   "token": string (base64-encoded session token)
+ * }
+ *
+ * Environment Variables:
+ * - ADMIN_PASSWORD: Administrative authentication credential
+ *
+ * Security Note:
+ * Current implementation uses basic token generation. For production environments,
+ * consider implementing JWT with expiration and refresh token mechanisms.
  */
 
 export async function onRequestPost(context) {
@@ -12,9 +30,9 @@ export async function onRequestPost(context) {
   try {
     const { password } = await request.json();
 
-    // Check against the environment variable
+    // Validate credentials against environment configuration
     if (password === env.ADMIN_PASSWORD) {
-      // Generate a simple token (in production, use JWT or similar)
+      // Generate session token (timestamp-based for simplicity)
       const token = btoa(`${password}:${Date.now()}`);
 
       return new Response(JSON.stringify({
@@ -52,7 +70,10 @@ export async function onRequestPost(context) {
   }
 }
 
-// Handle CORS preflight
+/**
+ * CORS Preflight Handler
+ * Responds to OPTIONS requests for cross-origin resource sharing
+ */
 export async function onRequestOptions() {
   return new Response(null, {
     headers: {

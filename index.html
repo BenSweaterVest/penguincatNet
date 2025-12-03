@@ -351,11 +351,11 @@
     <!-- Service Type Modal -->
     <div id="serviceModal" class="modal active">
         <div class="modal-content">
-            <h2>How would you like to dine?</h2>
+            <h2>Select Service Type</h2>
             <div class="service-options">
-                <button class="service-btn" onclick="selectService('takeout')">🥡 Takeout</button>
-                <button class="service-btn" onclick="selectService('delivery')">🚗 Delivery</button>
-                <button class="service-btn" onclick="selectService('dine-in')">🍽️ Dine In</button>
+                <button class="service-btn" onclick="selectService('takeout')">Takeout</button>
+                <button class="service-btn" onclick="selectService('delivery')">Delivery</button>
+                <button class="service-btn" onclick="selectService('dine-in')">Dine In</button>
             </div>
         </div>
     </div>
@@ -379,7 +379,7 @@
     <!-- Main Content -->
     <div class="container" id="mainContainer">
         <div class="main-content">
-            <h1>🎡 Restaurant Picker</h1>
+            <h1>Restaurant Picker</h1>
 
             <div class="wheel-container">
                 <div class="wheel-pointer"></div>
@@ -387,12 +387,12 @@
             </div>
 
             <div class="controls">
-                <button class="btn" id="spinBtn" onclick="spin()">SPIN THE WHEEL!</button>
+                <button class="btn" id="spinBtn" onclick="spin()">Spin to Select</button>
                 <button class="btn btn-secondary btn-small" style="margin-left: 10px;" onclick="changeService()">Change Service Type</button>
             </div>
 
             <div class="result" id="result">
-                <p style="color: #6c757d;">Spin the wheel to pick a restaurant!</p>
+                <p style="color: #6c757d;">Select spin button to begin random selection</p>
             </div>
         </div>
 
@@ -671,7 +671,7 @@
 
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = `
-                <h2>🎉 ${winner.name}</h2>
+                <h2>Selected: ${winner.name}</h2>
                 <p><strong>Food Types:</strong> ${winner.foodTypes.join(', ')}</p>
                 ${winner.address ? `<p><strong>Address:</strong> ${winner.address}</p>` : ''}
                 ${winner.phone ? `<p><strong>Phone:</strong> ${winner.phone}</p>` : ''}

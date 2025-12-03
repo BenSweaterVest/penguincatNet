@@ -1,17 +1,30 @@
 /**
- * Delete restaurant endpoint
- * DELETE /api/restaurants/:id
+ * Restaurant Deletion API Endpoint
  *
- * Required environment variables:
- * - GITHUB_TOKEN: GitHub personal access token
- * - GITHUB_REPO: Repository in format "owner/repo"
- * - GITHUB_BRANCH: Branch name
- * - ADMIN_PASSWORD: Password for verification
+ * Handles removal of individual restaurant records by ID.
+ *
+ * Endpoint: DELETE /api/restaurants/:id
+ *
+ * Path Parameters:
+ * - id: Integer restaurant identifier
+ *
+ * Authentication: Required (Bearer token)
+ *
+ * Environment Variables:
+ * - GITHUB_TOKEN: Personal access token with repo scope
+ * - GITHUB_REPO: Target repository in "owner/repository" format
+ * - GITHUB_BRANCH: Target branch for commits
+ * - ADMIN_PASSWORD: Administrative credential for verification
  */
 
 const RESTAURANT_FILE = 'restaurants.json';
 
-// Verify authentication token
+/**
+ * Verify authentication token from request headers
+ * @param {Request} request - Incoming request object
+ * @param {Object} env - Environment variables
+ * @returns {boolean} - Authentication status
+ */
 function verifyAuth(request, env) {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -28,7 +41,11 @@ function verifyAuth(request, env) {
   }
 }
 
-// Fetch file from GitHub
+/**
+ * Retrieve restaurant data file from GitHub repository
+ * @param {Object} env - Environment variables containing GitHub credentials
+ * @returns {Object} - Object containing parsed data and file SHA
+ */
 async function fetchFromGitHub(env) {
   const url = `https://api.github.com/repos/${env.GITHUB_REPO}/contents/${RESTAURANT_FILE}?ref=${env.GITHUB_BRANCH}`;
 
@@ -52,7 +69,14 @@ async function fetchFromGitHub(env) {
   };
 }
 
-// Update file on GitHub
+/**
+ * Commit updated restaurant data to GitHub repository
+ * @param {Object} env - Environment variables containing GitHub credentials
+ * @param {Object} content - Updated restaurant data object
+ * @param {string} sha - Current file SHA for conflict detection
+ * @param {string} message - Commit message
+ * @returns {Object} - GitHub API response
+ */
 async function updateGitHub(env, content, sha, message) {
   const url = `https://api.github.com/repos/${env.GITHUB_REPO}/contents/${RESTAURANT_FILE}`;
 
@@ -80,7 +104,12 @@ async function updateGitHub(env, content, sha, message) {
   return await response.json();
 }
 
-// DELETE - Remove restaurant
+/**
+ * DELETE Request Handler
+ * Removes restaurant record by ID with authentication validation
+ * @param {Object} context - Cloudflare Pages Functions context
+ * @returns {Response} - JSON response with operation result
+ */
 export async function onRequestDelete(context) {
   const { request, env, params } = context;
 
@@ -100,10 +129,10 @@ export async function onRequestDelete(context) {
   try {
     const restaurantId = parseInt(params.id);
 
-    // Fetch current data
+    // Retrieve current data and file SHA
     const { data, sha } = await fetchFromGitHub(env);
 
-    // Find and remove restaurant
+    // Locate restaurant record by ID
     const index = data.restaurants.findIndex(r => r.id === restaurantId);
 
     if (index === -1) {
@@ -121,7 +150,7 @@ export async function onRequestDelete(context) {
     const deletedRestaurant = data.restaurants[index];
     data.restaurants.splice(index, 1);
 
-    // Update GitHub
+    // Commit changes to repository
     await updateGitHub(
       env,
       data,
@@ -154,7 +183,11 @@ export async function onRequestDelete(context) {
   }
 }
 
-// Handle CORS preflight
+/**
+ * OPTIONS Request Handler
+ * Responds to CORS preflight requests
+ * @returns {Response} - CORS headers response
+ */
 export async function onRequestOptions() {
   return new Response(null, {
     headers: {

@@ -1,144 +1,140 @@
-# 🎡 Restaurant Picker
+# Restaurant Picker
 
-A beautiful, interactive restaurant picker web app with a spinning wheel interface. Perfect for those indecisive moments when you can't choose where to eat!
+A web-based restaurant selection application utilizing a randomized spinning wheel interface. This application provides a practical solution for group decision-making when selecting dining options.
 
-## Features
+## Overview
 
-- 🎯 **Spinning Wheel Interface** - Fun and interactive way to pick restaurants
-- 🍽️ **Service Type Selection** - Choose between takeout, delivery, or dine-in
-- 🏷️ **Food Type Filters** - Filter restaurants by cuisine type
-- 🔐 **Admin Authentication** - Secure password-protected admin panel
-- ➕ **Restaurant Management** - Add and remove restaurants on the fly
-- 💾 **GitHub Storage** - All data stored in your GitHub repository
-- ☁️ **Cloudflare Pages** - Fast, global deployment with edge functions
+This is a single-page application built for Cloudflare Pages with serverless functions. The application stores restaurant data in a GitHub repository and provides both public-facing selection functionality and password-protected administrative controls.
 
-## Live Demo
+## Core Features
 
-Once deployed, your app will be available at: `https://your-project.pages.dev`
+- **Randomized Selection Interface**: Canvas-based spinning wheel for restaurant selection
+- **Service Type Filtering**: Pre-selection modal for takeout, delivery, or dine-in options
+- **Cuisine Filtering**: Dynamic checkbox filters for food type categories
+- **Authentication System**: Token-based authentication for administrative functions
+- **Data Management**: CRUD operations for restaurant entries via admin panel
+- **GitHub Integration**: Restaurant data persisted in repository as JSON
+- **Cloudflare Functions**: Serverless API endpoints for data operations
+
+## Deployment Information
+
+Upon deployment to Cloudflare Pages, the application will be accessible at your assigned pages.dev domain or custom domain if configured.
 
 ## Setup Instructions
 
 ### 1. Prerequisites
 
-- A GitHub account
-- A Cloudflare account (free tier works fine)
-- A GitHub Personal Access Token
+- GitHub account with repository access
+- Cloudflare account (free tier sufficient)
+- GitHub Personal Access Token with appropriate permissions
 
-### 2. Create GitHub Personal Access Token
+### 2. GitHub Personal Access Token Generation
 
-1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
-2. Click "Generate new token (classic)"
-3. Give it a name like "Restaurant Picker"
-4. Select the following scopes:
-   - `repo` (Full control of private repositories)
-5. Click "Generate token"
-6. **Important:** Copy the token immediately - you won't be able to see it again!
+1. Navigate to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Select "Generate new token (classic)"
+3. Provide a descriptive name for identification purposes
+4. Required scopes:
+   - `repo` - Full control of private repositories (required for content API access)
+5. Generate token and securely store the value
+6. Note: Token values are only displayed once at creation time
 
-### 3. Deploy to Cloudflare Pages
+### 3. Cloudflare Pages Deployment
 
-#### Option A: Using Cloudflare Dashboard (Recommended)
+#### Option A: Dashboard Deployment (Recommended)
 
-1. **Connect your GitHub repository**
-   - Log in to [Cloudflare Dashboard](https://dash.cloudflare.com)
-   - Go to "Workers & Pages"
-   - Click "Create application" → "Pages" → "Connect to Git"
-   - Select your repository
+**Repository Connection**
+1. Access Cloudflare Dashboard at https://dash.cloudflare.com
+2. Navigate to Workers & Pages section
+3. Select "Create application" → "Pages" → "Connect to Git"
+4. Authorize and select the target repository
 
-2. **Configure build settings**
-   - Framework preset: `None`
-   - Build command: (leave empty)
-   - Build output directory: `/`
-   - Root directory: `/`
+**Build Configuration**
+- Framework preset: `None`
+- Build command: (leave empty)
+- Build output directory: `/`
+- Root directory: `/`
 
-3. **Set environment variables**
+**Environment Variables Configuration**
 
-   Go to Settings → Environment variables and add the following:
+Navigate to Settings → Environment variables and configure the following:
 
-   **For Production:**
-   - `ADMIN_PASSWORD` - Your chosen admin password (e.g., "mySecurePassword123")
-   - `GITHUB_TOKEN` - Your GitHub Personal Access Token
-   - `GITHUB_REPO` - Your repository in format "username/repo" (e.g., "BenSweaterVest/penguincatNet")
-   - `GITHUB_BRANCH` - The branch name (e.g., "claude/cloudflare-tiddlywiki-resume-01VkJojVEWgE8rnzfdSF29fw" or "main")
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `ADMIN_PASSWORD` | User-defined string | Authentication credential for admin panel access |
+| `GITHUB_TOKEN` | GitHub PAT | Personal access token for repository API operations |
+| `GITHUB_REPO` | `username/repository` | Target repository in owner/name format |
+| `GITHUB_BRANCH` | Branch name | Target branch for data persistence (e.g., "main" or feature branch) |
 
-   **Important:** These are secrets - check the "Encrypt" option for each variable.
+Ensure all variables are marked as encrypted for security purposes.
 
-4. **Deploy**
-   - Click "Save and Deploy"
-   - Wait for the deployment to complete
-   - Your app will be live at `https://your-project.pages.dev`
+**Deployment Execution**
+1. Save configuration changes
+2. Initiate deployment
+3. Monitor build logs for successful completion
+4. Application will be available at assigned pages.dev subdomain
 
-#### Option B: Using Wrangler CLI
+#### Option B: CLI Deployment via Wrangler
 
 ```bash
-# Install Wrangler
+# Install Wrangler globally
 npm install -g wrangler
 
-# Login to Cloudflare
+# Authenticate with Cloudflare
 wrangler login
 
-# Deploy
+# Deploy to Pages
 wrangler pages deploy . --project-name=restaurant-picker
 
-# Set environment variables
+# Configure environment secrets
 wrangler pages secret put ADMIN_PASSWORD
 wrangler pages secret put GITHUB_TOKEN
 wrangler pages secret put GITHUB_REPO
 wrangler pages secret put GITHUB_BRANCH
 ```
 
-### 4. Set the Main HTML File
+### 4. Post-Deployment Configuration
 
-After deployment, you need to set `restaurant-picker.html` as your main page:
-
-**Option A:** Rename the file to `index.html`:
-```bash
-mv restaurant-picker.html index.html
-git add .
-git commit -m "Rename main file to index.html"
-git push
-```
-
-**Option B:** Configure a redirect in Cloudflare Pages:
-1. Go to your Pages project settings
-2. Add a redirect from `/` to `/restaurant-picker.html`
+The application is configured to serve from `index.html` in the repository root. This has been pre-configured in the current repository structure. No additional routing configuration is required for standard deployments.
 
 ## Usage
 
-### For Regular Users
+### End-User Operations
 
-1. Visit your deployed app URL
-2. Select your dining preference (takeout, delivery, or dine-in)
-3. (Optional) Use the checkboxes on the right to filter by food type
-4. Click "SPIN THE WHEEL!" to randomly select a restaurant
-5. Enjoy your meal! 🍕
+1. Access the deployed application URL
+2. Select service type preference from the initial modal (takeout, delivery, or dine-in)
+3. Apply cuisine filters via sidebar checkboxes if desired
+4. Activate the randomization mechanism via the spin button
+5. View selected restaurant details including contact information and service availability
 
-### For Admins
+### Administrative Operations
 
-1. Click "Admin Login" in the sidebar
-2. Enter your admin password (the one you set in `ADMIN_PASSWORD`)
-3. Use the admin panel to:
-   - Add new restaurants with food types and service options
-   - Delete existing restaurants
-4. Click "Logout" when done
+1. Access admin panel via "Admin Login" button in sidebar
+2. Authenticate using the configured `ADMIN_PASSWORD` value
+3. Available administrative functions:
+   - **Add Restaurant**: Submit new restaurant entries with required metadata
+   - **Remove Restaurant**: Delete existing entries from the data store
+4. Administrative session can be terminated via logout function
 
-## File Structure
+## Application Structure
 
 ```
 .
-├── restaurant-picker.html          # Main web app (single-page application)
-├── restaurants.json                # Restaurant data (managed via admin panel)
+├── index.html                      # Single-page application (client-side)
+├── restaurants.json                # Restaurant data store
 ├── functions/
 │   └── api/
 │       ├── auth.js                # Authentication endpoint
-│       ├── restaurants.js         # GET/POST restaurants
+│       ├── restaurants.js         # Restaurant CRUD operations (GET/POST)
 │       └── restaurants/
-│           └── [id].js            # DELETE restaurant by ID
-└── README.md                      # This file
+│           └── [id].js            # Individual restaurant operations (DELETE)
+└── README.md                      # Documentation
 ```
 
-## Restaurant Data Format
+## Data Schema
 
-The `restaurants.json` file has the following structure:
+### Restaurant Object Structure
+
+The `restaurants.json` file maintains an array of restaurant objects with the following schema:
 
 ```json
 {
@@ -155,69 +151,104 @@ The `restaurants.json` file has the following structure:
 }
 ```
 
-### Fields:
-- `id` - Unique identifier (auto-generated)
-- `name` - Restaurant name (required)
-- `foodTypes` - Array of cuisine types (required)
-- `serviceTypes` - Array of available services: "takeout", "delivery", "dine-in" (required)
-- `address` - Physical address (optional)
-- `phone` - Contact number (optional)
+### Field Specifications
 
-## Security Notes
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | Integer | Yes | Unique identifier, auto-incremented on creation |
+| `name` | String | Yes | Restaurant business name |
+| `foodTypes` | Array[String] | Yes | Cuisine categories for filtering |
+| `serviceTypes` | Array[String] | Yes | Available service options: "takeout", "delivery", "dine-in" |
+| `address` | String | No | Physical location address |
+| `phone` | String | No | Contact telephone number |
 
-- ✅ Admin password is stored as a Cloudflare secret (encrypted)
-- ✅ GitHub token is stored as a Cloudflare secret (encrypted)
-- ✅ Authentication is required for all write operations
-- ✅ CORS is properly configured
-- ⚠️ This uses a simple token-based auth - for production use, consider implementing JWT or OAuth
+## Security Considerations
 
-## Customization
+### Current Implementation
 
-### Changing Colors
+- Administrative credentials stored as encrypted environment variables in Cloudflare
+- GitHub API token stored as encrypted secret
+- Authentication required for all write operations (POST, DELETE)
+- CORS headers configured for cross-origin resource sharing
+- Token-based authentication for session management
 
-Edit the CSS in `restaurant-picker.html`:
-- Primary gradient: Search for `#667eea` and `#764ba2`
-- Wheel colors: Modify the `colors` array in JavaScript
+### Production Recommendations
 
-### Adding More Fields
+For enterprise or high-security deployments, consider implementing:
+- JWT (JSON Web Tokens) for stateless authentication
+- OAuth 2.0 integration for identity management
+- Rate limiting on API endpoints
+- Audit logging for administrative actions
+- Multi-factor authentication for admin access
 
-1. Update the restaurant object structure in `restaurants.json`
-2. Add form fields in the admin panel HTML
-3. Update the `addRestaurant()` function to include new fields
+## Customization Guide
 
-### Modifying the Wheel
+### Visual Styling Modifications
 
-Adjust these variables in the JavaScript:
-- `minSpins` and `maxSpins` - Control spin duration
-- `duration` - Animation length in milliseconds
-- Canvas size - Modify `.wheel-container` CSS
+**Color Scheme**
+- Primary gradient colors defined in CSS: `#667eea` and `#764ba2`
+- Wheel segment colors configured in JavaScript `colors` array
+- Modify these values in `index.html` for brand consistency
+
+**Wheel Behavior**
+- `minSpins`: Minimum rotation cycles (default: 5)
+- `maxSpins`: Maximum rotation cycles (default: 8)
+- `duration`: Animation length in milliseconds (default: 4000)
+- Canvas dimensions: Controlled via `.wheel-container` CSS class
+
+### Data Model Extension
+
+To add additional fields to restaurant records:
+
+1. Update the JSON schema in `restaurants.json`
+2. Add corresponding form inputs in the admin panel section
+3. Modify `addRestaurant()` function to capture new field values
+4. Update the result display template to show new fields
 
 ## Troubleshooting
 
-### Restaurants Not Loading
-- Check that `restaurants.json` exists in your repository
-- Verify GitHub token has correct permissions
-- Check Cloudflare Functions logs for errors
+### Data Loading Issues
 
-### Authentication Not Working
-- Verify `ADMIN_PASSWORD` environment variable is set
-- Make sure you're entering the exact password (case-sensitive)
-- Check browser console for API errors
+**Symptom**: Restaurant data fails to load or displays empty state
 
-### Changes Not Saving
-- Verify `GITHUB_TOKEN` has write permissions
-- Check that `GITHUB_REPO` format is correct ("username/repo")
-- Ensure `GITHUB_BRANCH` matches your current branch
+**Resolution Steps**:
+1. Verify `restaurants.json` exists in the repository root
+2. Confirm GitHub token has `repo` scope permissions
+3. Review Cloudflare Functions logs for API errors
+4. Validate JSON syntax in data file
+5. Check network tab for failed API requests
 
-## Development
+### Authentication Failures
 
-To test locally:
+**Symptom**: Admin login rejected or returns unauthorized error
+
+**Resolution Steps**:
+1. Verify `ADMIN_PASSWORD` environment variable is configured
+2. Confirm password is case-sensitive and matches exactly
+3. Check browser developer console for authentication errors
+4. Clear browser cache and retry authentication
+5. Verify Cloudflare environment variable is deployed (not just saved)
+
+### Data Persistence Failures
+
+**Symptom**: Restaurant additions or deletions not saving
+
+**Resolution Steps**:
+1. Confirm `GITHUB_TOKEN` has write permissions for target repository
+2. Validate `GITHUB_REPO` format follows "username/repository" pattern
+3. Verify `GITHUB_BRANCH` matches the actual branch name in repository
+4. Check GitHub API rate limits have not been exceeded
+5. Review Cloudflare Functions logs for GitHub API errors
+
+## Local Development
+
+### Development Environment Setup
 
 ```bash
-# Install Wrangler
+# Install Wrangler CLI
 npm install -g wrangler
 
-# Create a .dev.vars file with your secrets
+# Configure local environment variables
 cat > .dev.vars << EOF
 ADMIN_PASSWORD=your_password
 GITHUB_TOKEN=your_github_token
@@ -225,20 +256,30 @@ GITHUB_REPO=username/repo
 GITHUB_BRANCH=main
 EOF
 
-# Run local dev server
+# Start local development server
 wrangler pages dev . --local
 ```
 
-Visit `http://localhost:8788/restaurant-picker.html`
+Access the application at `http://localhost:8788/`
 
-## Contributing
+Note: Local development requires Node.js and npm to be installed.
 
-Feel free to fork this project and customize it for your needs!
+## API Endpoints
 
-## License
+### Authentication
+- **POST** `/api/auth` - Authenticate and receive session token
 
-MIT License - feel free to use this for personal or commercial projects.
+### Restaurant Operations
+- **GET** `/api/restaurants` - Retrieve all restaurant data
+- **POST** `/api/restaurants` - Create new restaurant (requires auth)
+- **DELETE** `/api/restaurants/:id` - Remove restaurant by ID (requires auth)
 
----
+All API endpoints return JSON responses and include appropriate CORS headers.
 
-Made with ❤️ and a spinning wheel
+## Technical Notes
+
+- Built for Cloudflare Pages with Functions (v2)
+- Client-side rendering using vanilla JavaScript
+- Canvas API for wheel visualization
+- GitHub Contents API for data persistence
+- No build process or dependencies required
