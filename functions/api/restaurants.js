@@ -195,7 +195,7 @@ export async function onRequestPost(context) {
     }
 
     // Validate service types contain only valid values
-    const validServiceTypes = ['takeout', 'delivery', 'dine-in'];
+    const validServiceTypes = ['takeout', 'delivery', 'dine-in', 'at-home'];
     const invalidServiceTypes = newRestaurant.serviceTypes.filter(st => !validServiceTypes.includes(st));
     if (invalidServiceTypes.length > 0) {
       return new Response(JSON.stringify({

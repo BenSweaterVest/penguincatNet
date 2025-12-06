@@ -9,8 +9,10 @@ This is a single-page application built for Cloudflare Pages with serverless fun
 ## Core Features
 
 - **Randomized Selection Interface**: Canvas-based spinning wheel for restaurant selection
-- **Dining Profiles**: Configure custom restaurant subsets for different scenarios (e.g., dining with specific people, quick lunch options)
-- **Service Type Filtering**: Pre-selection modal for takeout, delivery, or dine-in options
+- **Service Type Wheel**: Fun mini-wheel to randomly pick between takeout, delivery, dine-in, or cooking at home
+- **Dining Profiles**: Configure custom restaurant subsets for different scenarios with autocomplete selector
+- **Service Type Filtering**: Dropdown selector for takeout, delivery, dine-in, or at-home options
+- **At-Home Cooking Option**: Include recipes and dishes you can make at home alongside restaurant choices
 - **Cuisine Filtering**: Dynamic checkbox filters for food type categories
 - **Authentication System**: Token-based authentication for administrative functions
 - **Data Management**: CRUD operations for restaurant and profile entries via admin panel
@@ -118,8 +120,8 @@ The application is configured to serve from `index.html` in the repository root.
 
 1. Access the deployed application URL
 2. Configure filters in the sidebar:
-   - **Service Type**: Select "All Service Types", "Takeout", "Delivery", or "Dine In"
-   - **Dining Profile**: Choose a profile like "With Sarah", "Quick Lunch Options", or "All Restaurants"
+   - **Service Type**: Select "All Service Types", "Takeout", "Delivery", "Dine In", or "At Home" from dropdown, or click the wheel icon (🎡) to randomly spin for a service type
+   - **Dining Profile**: Type to search and select a profile like "With Sarah", "Quick Lunch Options", or "All Restaurants" using the autocomplete field
    - **Food Type Filters**: Check cuisine categories to narrow results (optional)
 3. Activate the randomization mechanism via the "Spin to Select" button
 4. View selected restaurant details including:
@@ -204,7 +206,7 @@ The `restaurants.json` file maintains an array of restaurant objects with the fo
 | `id` | Integer | Yes | Unique identifier, auto-incremented on creation |
 | `name` | String | Yes | Restaurant business name |
 | `foodTypes` | Array[String] | Yes | Cuisine categories for filtering |
-| `serviceTypes` | Array[String] | Yes | Available service options: "takeout", "delivery", "dine-in" |
+| `serviceTypes` | Array[String] | Yes | Available service options: "takeout", "delivery", "dine-in", "at-home" |
 | `profiles` | Array[String] | No | Profile IDs this restaurant is tagged with (empty array means no specific profiles) |
 | `orderMethod` | String | No | Instructions for ordering (e.g., "DoorDash", "call ahead", "online") |
 | `menuLink` | String | No | URL to the restaurant's menu |
@@ -299,9 +301,10 @@ For manual data management, use this template to create or edit your `restaurant
 - Always include the "all" profile in your profiles array
 - Restaurant IDs must be unique integers
 - Profile IDs must use lowercase letters, numbers, and hyphens only
-- Service types must be exactly: "takeout", "delivery", or "dine-in"
+- Service types must be exactly: "takeout", "delivery", "dine-in", or "at-home"
 - The `profiles` array can be empty (`[]`) if the restaurant isn't tagged with any specific profiles
 - Optional fields (`orderMethod`, `menuLink`, `address`, `phone`, `notes`) can be omitted or left as empty strings
+- Use "at-home" service type for recipes and dishes you can cook at home
 
 ## Security Considerations
 
@@ -318,7 +321,7 @@ The application implements multiple security layers to protect data and prevent 
 **Input Validation and Sanitization:**
 - Server-side validation of all incoming data
 - Type checking for arrays and required fields
-- Service type validation against allowed values (takeout, delivery, dine-in)
+- Service type validation against allowed values (takeout, delivery, dine-in, at-home)
 - Profile ID format validation (lowercase, alphanumeric, hyphens only)
 - Reserved keyword protection for profile IDs
 - Client-side HTML sanitization to prevent XSS attacks
@@ -421,7 +424,7 @@ To add additional fields to restaurant records:
 **Explanation**: The application enforces strict validation rules to maintain data integrity
 
 **Common Validation Rules**:
-- Service types must be one of: `takeout`, `delivery`, or `dine-in`
+- Service types must be one of: `takeout`, `delivery`, `dine-in`, or `at-home`
 - Profile IDs must contain only lowercase letters, numbers, and hyphens
 - Food types and service types must be provided as arrays
 - Reserved profile IDs (e.g., "all") cannot be used for custom profiles
