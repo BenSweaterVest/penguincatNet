@@ -789,7 +789,7 @@
 
         function showServiceResult(numSegments, anglePerSegment) {
             const normalizedRotation = (serviceWheelRotation % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-            const pointerAngle = Math.PI / 2; // Pointer is at top
+            const pointerAngle = 3 * Math.PI / 2; // Pointer is at top (270 degrees in canvas coords)
             const selectedAngle = (2 * Math.PI - normalizedRotation + pointerAngle) % (2 * Math.PI);
             const selectedIndex = Math.floor(selectedAngle / anglePerSegment) % numSegments;
             const selectedType = serviceTypes[selectedIndex];
@@ -1115,7 +1115,7 @@
          */
         function showResult(filteredRestaurants, numSegments, anglePerSegment) {
             const normalizedRotation = (currentRotation % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-            const pointerAngle = Math.PI / 2; // Pointer is at top
+            const pointerAngle = 3 * Math.PI / 2; // Pointer is at top (270 degrees in canvas coords)
             const selectedAngle = (2 * Math.PI - normalizedRotation + pointerAngle) % (2 * Math.PI);
             const selectedIndex = Math.floor(selectedAngle / anglePerSegment) % numSegments;
             const winner = filteredRestaurants[selectedIndex];
