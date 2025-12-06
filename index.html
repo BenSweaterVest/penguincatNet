@@ -239,30 +239,6 @@
             text-align: center;
         }
 
-        .service-options {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .service-btn {
-            padding: 20px;
-            font-size: 1.3em;
-            border-radius: 10px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .service-btn:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
         .admin-panel {
             display: none;
             margin-top: 20px;
@@ -368,18 +344,6 @@
     </style>
 </head>
 <body>
-    <!-- Service Type Modal -->
-    <div id="serviceModal" class="modal active">
-        <div class="modal-content">
-            <h2>Select Service Type</h2>
-            <div class="service-options">
-                <button class="service-btn" onclick="selectService('takeout')">Takeout</button>
-                <button class="service-btn" onclick="selectService('delivery')">Delivery</button>
-                <button class="service-btn" onclick="selectService('dine-in')">Dine In</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Login Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
@@ -397,7 +361,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="container" id="mainContainer">
+    <div class="container active" id="mainContainer">
         <div class="main-content">
             <h1>Restaurant Picker</h1>
 
@@ -408,7 +372,6 @@
 
             <div class="controls">
                 <button class="btn" id="spinBtn" onclick="spin()">Spin to Select</button>
-                <button class="btn btn-secondary btn-small" style="margin-left: 10px;" onclick="changeService()">Change Service Type</button>
             </div>
 
             <div class="result" id="result">
@@ -417,6 +380,16 @@
         </div>
 
         <div class="sidebar">
+            <h3>Service Type</h3>
+            <div class="profile-section">
+                <select id="serviceTypeSelector" onchange="onServiceTypeChange()">
+                    <option value="all">All Service Types</option>
+                    <option value="takeout">Takeout</option>
+                    <option value="delivery">Delivery</option>
+                    <option value="dine-in">Dine In</option>
+                </select>
+            </div>
+
             <h3>Dining Profile</h3>
             <div class="profile-section">
                 <select id="profileSelector" onchange="onProfileChange()">
@@ -519,7 +492,7 @@
         let restaurants = [];
         let profiles = [];
         let selectedProfile = 'all';
-        let selectedService = '';
+        let selectedService = 'all';
         let currentRotation = 0;
         let isSpinning = false;
         let isAuthenticated = false;
@@ -597,16 +570,13 @@
             }
         }
 
-        // Service selection
-        function selectService(service) {
-            selectedService = service;
-            document.getElementById('serviceModal').classList.remove('active');
-            document.getElementById('mainContainer').classList.add('active');
+        /**
+         * Handle service type selector change
+         * Updates selected service type and redraws wheel with filtered restaurants
+         */
+        function onServiceTypeChange() {
+            selectedService = document.getElementById('serviceTypeSelector').value;
             drawWheel();
-        }
-
-        function changeService() {
-            document.getElementById('serviceModal').classList.add('active');
         }
 
         // Profile management
@@ -630,7 +600,10 @@
             drawWheel();
         }
 
-        // Get filtered restaurants
+        /**
+         * Get filtered restaurants based on current filter selections
+         * @returns {Array} - Filtered array of restaurant objects
+         */
         function getFilteredRestaurants() {
             const selectedFoodTypes = Array.from(document.querySelectorAll('#foodTypeFilters input:checked'))
                 .map(cb => cb.value);
@@ -645,8 +618,11 @@
                 }
 
                 // Filter by service type
-                if (!r.serviceTypes.includes(selectedService)) {
-                    return false;
+                // "all" shows all service types, otherwise check if restaurant offers the selected service type
+                if (selectedService !== 'all') {
+                    if (!r.serviceTypes || !r.serviceTypes.includes(selectedService)) {
+                        return false;
+                    }
                 }
 
                 // Filter by food types (if any are selected)

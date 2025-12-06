@@ -31,13 +31,28 @@ Upon deployment to Cloudflare Pages, the application will be accessible at your 
 
 ### 2. GitHub Personal Access Token Generation
 
-1. Navigate to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
-2. Select "Generate new token (classic)"
-3. Provide a descriptive name for identification purposes
-4. Required scopes:
-   - `repo` - Full control of private repositories (required for content API access)
-5. Generate token and securely store the value
-6. Note: Token values are only displayed once at creation time
+**Option A: Fine-grained Personal Access Token (Recommended)**
+
+1. Navigate to: https://github.com/settings/personal-access-tokens/new
+2. Configure token settings:
+   - **Token name**: Restaurant Picker App (or your preferred name)
+   - **Expiration**: Choose appropriate expiration period
+   - **Repository access**: Select "Only select repositories" and choose your restaurant data repository
+   - **Repository permissions**:
+     - Contents: **Read and write** (required for reading and updating restaurants.json)
+3. Generate token and securely store the value
+4. Note: Token values are only displayed once at creation time
+
+**Option B: Classic Personal Access Token**
+
+1. Navigate to: https://github.com/settings/tokens/new
+2. Configure token settings:
+   - **Note**: Restaurant Picker App (or your preferred name)
+   - **Expiration**: Choose appropriate expiration period
+   - **Select scopes**:
+     - ✓ **repo** (Full control of private repositories - grants access to Contents API)
+3. Generate token and securely store the value
+4. Note: Token values are only displayed once at creation time
 
 ### 3. Cloudflare Pages Deployment
 
@@ -102,13 +117,22 @@ The application is configured to serve from `index.html` in the repository root.
 ### End-User Operations
 
 1. Access the deployed application URL
-2. Select service type preference from the initial modal (takeout, delivery, or dine-in)
-3. Optionally select a dining profile from the dropdown in the sidebar (e.g., "With Sarah", "Quick Lunch Options")
-4. Apply cuisine filters via sidebar checkboxes if desired
-5. Activate the randomization mechanism via the spin button
-6. View selected restaurant details including contact information and service availability
+2. Configure filters in the sidebar:
+   - **Service Type**: Select "All Service Types", "Takeout", "Delivery", or "Dine In"
+   - **Dining Profile**: Choose a profile like "With Sarah", "Quick Lunch Options", or "All Restaurants"
+   - **Food Type Filters**: Check cuisine categories to narrow results (optional)
+3. Activate the randomization mechanism via the "Spin to Select" button
+4. View selected restaurant details including:
+   - Name and cuisine types
+   - Ordering instructions (phone, app, website)
+   - Menu link (if available)
+   - Contact information (address and phone)
+   - Special notes
 
-**Dining Profiles**: Profiles allow you to create custom restaurant subsets for specific scenarios. For example, if dining with someone who travels from a different location, create a profile with restaurants along their route. The "All Restaurants" profile includes all available options.
+**Filter Behavior**:
+- **Service Type**: Defaults to "All Service Types" showing restaurants regardless of service method. Select a specific type to filter restaurants offering that service.
+- **Dining Profiles**: Profiles allow you to create custom restaurant subsets for specific scenarios. For example, if dining with someone who travels from a different location, create a profile with restaurants along their route. The "All Restaurants" profile includes all available options.
+- **Food Type Filters**: Multiple food types can be selected simultaneously. Restaurants matching any selected cuisine will be included.
 
 ### Administrative Operations
 
@@ -222,6 +246,63 @@ The `restaurants.json` file also maintains an array of dining profile objects. P
 
 **Special Profile**: The "all" profile is a reserved profile ID that shows all restaurants regardless of their profile tags. This profile cannot be deleted.
 
+### Complete restaurants.json Template
+
+For manual data management, use this template to create or edit your `restaurants.json` file:
+
+```json
+{
+  "profiles": [
+    {
+      "id": "all",
+      "name": "All Restaurants"
+    },
+    {
+      "id": "date-night",
+      "name": "Date Night Options"
+    },
+    {
+      "id": "quick-lunch",
+      "name": "Quick Lunch"
+    }
+  ],
+  "restaurants": [
+    {
+      "id": 1,
+      "name": "Example Restaurant",
+      "foodTypes": ["Italian", "Pizza"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["date-night"],
+      "orderMethod": "Call (555) 123-4567 or order via DoorDash",
+      "menuLink": "https://example.com/menu",
+      "address": "123 Main Street, City, ST 12345",
+      "phone": "(555) 123-4567",
+      "notes": "Great for vegetarians. Reservations recommended on weekends."
+    },
+    {
+      "id": 2,
+      "name": "Another Restaurant",
+      "foodTypes": ["Mexican", "Latin"],
+      "serviceTypes": ["takeout", "delivery"],
+      "profiles": ["quick-lunch", "date-night"],
+      "orderMethod": "Uber Eats or Grubhub",
+      "menuLink": "https://example2.com/menu",
+      "address": "456 Oak Avenue, City, ST 12345",
+      "phone": "(555) 987-6543",
+      "notes": "Very quick service, usually ready in 10-15 minutes."
+    }
+  ]
+}
+```
+
+**Important Notes:**
+- Always include the "all" profile in your profiles array
+- Restaurant IDs must be unique integers
+- Profile IDs must use lowercase letters, numbers, and hyphens only
+- Service types must be exactly: "takeout", "delivery", or "dine-in"
+- The `profiles` array can be empty (`[]`) if the restaurant isn't tagged with any specific profiles
+- Optional fields (`orderMethod`, `menuLink`, `address`, `phone`, `notes`) can be omitted or left as empty strings
+
 ## Security Considerations
 
 ### Current Implementation
@@ -303,7 +384,10 @@ To add additional fields to restaurant records:
 
 **Resolution Steps**:
 1. Verify `restaurants.json` exists in the repository root
-2. Confirm GitHub token has `repo` scope permissions
+2. Confirm GitHub token has correct permissions:
+   - Fine-grained: "Contents" repository permission with Read and Write access
+   - Classic: "repo" scope enabled
+   - Direct links: https://github.com/settings/personal-access-tokens or https://github.com/settings/tokens
 3. Review Cloudflare Functions logs for API errors
 4. Validate JSON syntax in data file
 5. Check network tab for failed API requests
