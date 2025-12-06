@@ -115,10 +115,19 @@ The application is configured to serve from `index.html` in the repository root.
 1. Access admin panel via "Admin Login" button in sidebar
 2. Authenticate using the configured `ADMIN_PASSWORD` value
 3. Available administrative functions:
-   - **Add Restaurant**: Submit new restaurant entries with required metadata (name, food types, service types, optional address and phone)
+
+   **Restaurant Management:**
+   - **Add Restaurant**: Create new restaurant entries with the following fields:
+     - Required: name, food types, service types
+     - Optional: dining profiles (checkboxes), ordering instructions, menu link, address, phone, notes
    - **Remove Restaurant**: Delete existing entries from the data store
-   - **Add Profile**: Create dining profiles by specifying a name and selecting included restaurants
+
+   **Profile Management:**
+   - **Add Profile**: Create profile labels (just name required). After creation, profiles can be assigned to restaurants via the restaurant form
    - **Remove Profile**: Delete existing profiles (default "All Restaurants" profile cannot be deleted)
+
+   **Workflow**: Create profiles first using simple names, then tag restaurants with appropriate profiles when adding or editing them. The profile list shows which restaurants are currently tagged with each profile.
+
 4. Administrative session can be terminated via logout function
 
 ## Application Structure
@@ -153,8 +162,12 @@ The `restaurants.json` file maintains an array of restaurant objects with the fo
       "name": "Mario's Italian Bistro",
       "foodTypes": ["Italian", "Pizza"],
       "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["sarah-enroute", "quick-lunch"],
+      "orderMethod": "Call or DoorDash",
+      "menuLink": "https://marios-bistro.example.com/menu",
       "address": "123 Main St",
-      "phone": "(555) 123-4567"
+      "phone": "(555) 123-4567",
+      "notes": "Excellent for large groups"
     }
   ]
 }
@@ -168,25 +181,31 @@ The `restaurants.json` file maintains an array of restaurant objects with the fo
 | `name` | String | Yes | Restaurant business name |
 | `foodTypes` | Array[String] | Yes | Cuisine categories for filtering |
 | `serviceTypes` | Array[String] | Yes | Available service options: "takeout", "delivery", "dine-in" |
+| `profiles` | Array[String] | No | Profile IDs this restaurant is tagged with (empty array means no specific profiles) |
+| `orderMethod` | String | No | Instructions for ordering (e.g., "DoorDash", "call ahead", "online") |
+| `menuLink` | String | No | URL to the restaurant's menu |
 | `address` | String | No | Physical location address |
 | `phone` | String | No | Contact telephone number |
+| `notes` | String | No | Additional information about the restaurant |
 
 ### Profile Object Structure
 
-The `restaurants.json` file also maintains an array of dining profile objects:
+The `restaurants.json` file also maintains an array of dining profile objects. Profiles are lightweight labels that restaurants can be tagged with:
 
 ```json
 {
   "profiles": [
     {
       "id": "all",
-      "name": "All Restaurants",
-      "restaurantIds": []
+      "name": "All Restaurants"
     },
     {
       "id": "sarah-enroute",
-      "name": "With Sarah (En Route)",
-      "restaurantIds": [1, 4, 5, 10]
+      "name": "With Sarah (En Route)"
+    },
+    {
+      "id": "quick-lunch",
+      "name": "Quick Lunch Options"
     }
   ]
 }
@@ -196,30 +215,53 @@ The `restaurants.json` file also maintains an array of dining profile objects:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `id` | String | Yes | Unique identifier, generated from profile name |
+| `id` | String | Yes | Unique identifier, generated from profile name (lowercase, hyphenated) |
 | `name` | String | Yes | Display name for the dining profile |
-| `restaurantIds` | Array[Integer] | Yes | List of restaurant IDs included in this profile (empty array means all restaurants) |
 
-**Note**: The "all" profile with empty `restaurantIds` array is a special default profile that includes all restaurants. This profile cannot be deleted.
+**Data Model**: Profiles are assigned to restaurants via the `profiles` array in each restaurant object, rather than profiles containing restaurant IDs. This restaurant-centric approach makes data management more intuitive and easier to maintain.
+
+**Special Profile**: The "all" profile is a reserved profile ID that shows all restaurants regardless of their profile tags. This profile cannot be deleted.
 
 ## Security Considerations
 
 ### Current Implementation
 
+The application implements multiple security layers to protect data and prevent unauthorized access:
+
+**Authentication and Authorization:**
 - Administrative credentials stored as encrypted environment variables in Cloudflare
 - GitHub API token stored as encrypted secret
-- Authentication required for all write operations (POST, DELETE)
-- CORS headers configured for cross-origin resource sharing
 - Token-based authentication for session management
+- Authentication required for all write operations (POST, DELETE)
+
+**Input Validation and Sanitization:**
+- Server-side validation of all incoming data
+- Type checking for arrays and required fields
+- Service type validation against allowed values (takeout, delivery, dine-in)
+- Profile ID format validation (lowercase, alphanumeric, hyphens only)
+- Reserved keyword protection for profile IDs
+- Client-side HTML sanitization to prevent XSS attacks
+- URL validation for menu links
+
+**Data Integrity:**
+- Cascade cleanup when profiles are deleted (removes profile references from restaurants)
+- SHA-based conflict detection for GitHub commits
+- Array existence checks before modification operations
+
+**Network Security:**
+- CORS headers configured for cross-origin resource sharing
+- **IMPORTANT: HTTPS Required** - All production deployments must use HTTPS to protect credentials in transit
 
 ### Production Recommendations
 
 For enterprise or high-security deployments, consider implementing:
-- JWT (JSON Web Tokens) for stateless authentication
+- JWT (JSON Web Tokens) with expiration for stateless authentication
 - OAuth 2.0 integration for identity management
-- Rate limiting on API endpoints
+- Rate limiting on API endpoints to prevent brute force attacks
 - Audit logging for administrative actions
 - Multi-factor authentication for admin access
+- Content Security Policy (CSP) headers
+- Regular security audits and dependency updates
 
 ## Customization Guide
 
@@ -227,14 +269,22 @@ For enterprise or high-security deployments, consider implementing:
 
 **Color Scheme**
 - Primary gradient colors defined in CSS: `#667eea` and `#764ba2`
-- Wheel segment colors configured in JavaScript `colors` array
+- Wheel segment colors configured in JavaScript `CONFIG.WHEEL_COLORS` array
 - Modify these values in `index.html` for brand consistency
 
-**Wheel Behavior**
-- `minSpins`: Minimum rotation cycles (default: 5)
-- `maxSpins`: Maximum rotation cycles (default: 8)
-- `duration`: Animation length in milliseconds (default: 4000)
+**Wheel Behavior Configuration**
+
+All wheel behavior parameters are centralized in the `CONFIG` constant at the top of the JavaScript section in `index.html`:
+
+- `WHEEL_COLORS`: Array of hex color codes for wheel segments
+- `MIN_SPINS`: Minimum rotation cycles (default: 5)
+- `MAX_SPINS`: Maximum rotation cycles (default: 8)
+- `SPIN_DURATION`: Animation length in milliseconds (default: 4000)
+- `CACHE_MAX_AGE`: API response cache duration in seconds (default: 60)
+
+**Layout Dimensions**
 - Canvas dimensions: Controlled via `.wheel-container` CSS class
+- Responsive breakpoint: 768px (configured in media queries)
 
 ### Data Model Extension
 
@@ -280,6 +330,21 @@ To add additional fields to restaurant records:
 4. Check GitHub API rate limits have not been exceeded
 5. Review Cloudflare Functions logs for GitHub API errors
 
+### Input Validation Errors
+
+**Symptom**: Receiving "Invalid service types" or "Profile ID format" errors when adding data
+
+**Explanation**: The application enforces strict validation rules to maintain data integrity
+
+**Common Validation Rules**:
+- Service types must be one of: `takeout`, `delivery`, or `dine-in`
+- Profile IDs must contain only lowercase letters, numbers, and hyphens
+- Food types and service types must be provided as arrays
+- Reserved profile IDs (e.g., "all") cannot be used for custom profiles
+- Restaurant names, food types, and service types are required fields
+
+**Resolution**: Ensure submitted data conforms to the validation rules. Check browser console for specific error messages.
+
 ## Local Development
 
 ### Development Environment Setup
@@ -323,8 +388,44 @@ All API endpoints return JSON responses and include appropriate CORS headers.
 
 ## Technical Notes
 
+### Architecture and Technology Stack
+
 - Built for Cloudflare Pages with Functions (v2)
-- Client-side rendering using vanilla JavaScript
-- Canvas API for wheel visualization
-- GitHub Contents API for data persistence
-- No build process or dependencies required
+- Client-side rendering using vanilla JavaScript (no framework dependencies)
+- HTML5 Canvas API for wheel visualization and animations
+- GitHub Contents API for serverless data persistence
+- No build process, bundlers, or package dependencies required
+
+### Code Quality and Best Practices
+
+The codebase implements several software engineering best practices:
+
+**Security:**
+- Input validation and sanitization at both client and server layers
+- XSS prevention through HTML escaping
+- CORS configuration for cross-origin requests
+- Secure token-based authentication
+
+**Code Organization:**
+- Configuration constants centralized in `CONFIG` object
+- Modular function design with single responsibilities
+- JSDoc-style documentation for functions
+- Descriptive variable and function naming conventions
+
+**Error Handling:**
+- Try-catch blocks for all async operations
+- Graceful fallbacks when API calls fail
+- User-friendly error messages
+- Validation errors with specific feedback
+
+**Data Integrity:**
+- SHA-based conflict detection for concurrent modifications
+- Cascade cleanup for referential integrity
+- Type validation for all data structures
+- Array existence checks before modifications
+
+**Performance:**
+- Request animation frame for smooth wheel animations
+- Easing functions for natural motion
+- Response caching with configurable TTL
+- Minimal DOM manipulations

@@ -2,18 +2,15 @@
   "profiles": [
     {
       "id": "all",
-      "name": "All Restaurants",
-      "restaurantIds": []
+      "name": "All Restaurants"
     },
     {
       "id": "sarah-enroute",
-      "name": "With Sarah (En Route)",
-      "restaurantIds": [1, 4, 5, 10]
+      "name": "With Sarah (En Route)"
     },
     {
       "id": "quick-lunch",
-      "name": "Quick Lunch Options",
-      "restaurantIds": [2, 4, 6, 10]
+      "name": "Quick Lunch Options"
     }
   ],
   "restaurants": [
@@ -22,80 +19,120 @@
       "name": "Mario's Italian Bistro",
       "foodTypes": ["Italian", "Pizza"],
       "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["sarah-enroute"],
       "address": "123 Main St",
-      "phone": "(555) 123-4567"
+      "phone": "(555) 123-4567",
+      "orderMethod": "Call or DoorDash",
+      "menuLink": "https://marios-bistro.example.com/menu",
+      "notes": "Excellent for large groups, reservations recommended for dine-in"
     },
     {
       "id": 2,
       "name": "Golden Dragon",
       "foodTypes": ["Chinese", "Asian"],
       "serviceTypes": ["takeout", "delivery"],
+      "profiles": ["quick-lunch"],
       "address": "456 Oak Ave",
-      "phone": "(555) 234-5678"
+      "phone": "(555) 234-5678",
+      "orderMethod": "Grubhub or phone",
+      "menuLink": "",
+      "notes": "Fast delivery, good lunch specials"
     },
     {
       "id": 3,
       "name": "Taco Fiesta",
       "foodTypes": ["Mexican", "Latin"],
       "serviceTypes": ["takeout", "dine-in"],
+      "profiles": [],
       "address": "789 Pine Rd",
-      "phone": "(555) 345-6789"
+      "phone": "(555) 345-6789",
+      "orderMethod": "Call ahead for takeout",
+      "menuLink": "https://tacofiesta.example.com",
+      "notes": "Cash only, great margaritas"
     },
     {
       "id": 4,
       "name": "Burger Palace",
       "foodTypes": ["American", "Burgers"],
       "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["sarah-enroute", "quick-lunch"],
       "address": "321 Elm St",
-      "phone": "(555) 456-7890"
+      "phone": "(555) 456-7890",
+      "orderMethod": "Uber Eats, DoorDash, or call",
+      "menuLink": "https://burgerpalace.example.com/menu",
+      "notes": "Fast service, great milkshakes"
     },
     {
       "id": 5,
       "name": "Sushi Paradise",
       "foodTypes": ["Japanese", "Asian", "Sushi"],
       "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["sarah-enroute"],
       "address": "654 Maple Dr",
-      "phone": "(555) 567-8901"
+      "phone": "(555) 567-8901",
+      "orderMethod": "Online ordering at sushi-paradise.com or phone",
+      "menuLink": "https://sushi-paradise.example.com/menu",
+      "notes": "Fresh fish daily, ask about omakase options"
     },
     {
       "id": 6,
       "name": "Thai Spice",
       "foodTypes": ["Thai", "Asian"],
       "serviceTypes": ["takeout", "delivery"],
+      "profiles": ["quick-lunch"],
       "address": "987 Cedar Ln",
-      "phone": "(555) 678-9012"
+      "phone": "(555) 678-9012",
+      "orderMethod": "Grubhub or call",
+      "menuLink": "",
+      "notes": "Spice levels 1-5, ask for Thai hot if you like it spicy"
     },
     {
       "id": 7,
       "name": "The Steakhouse",
       "foodTypes": ["American", "Steakhouse"],
       "serviceTypes": ["dine-in"],
+      "profiles": [],
       "address": "147 Oak Blvd",
-      "phone": "(555) 789-0123"
+      "phone": "(555) 789-0123",
+      "orderMethod": "Reservations required: OpenTable or phone",
+      "menuLink": "https://thesteakhouse.example.com",
+      "notes": "Upscale dining, jacket recommended"
     },
     {
       "id": 8,
       "name": "Mediterranean Grill",
       "foodTypes": ["Mediterranean", "Greek"],
       "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": [],
       "address": "258 Birch Way",
-      "phone": "(555) 890-1234"
+      "phone": "(555) 890-1234",
+      "orderMethod": "Call or walk-in",
+      "menuLink": "https://medgrill.example.com/menu",
+      "notes": "Family-owned, try the lamb gyro"
     },
     {
       "id": 9,
       "name": "India Palace",
       "foodTypes": ["Indian", "Asian"],
       "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": [],
       "address": "369 Willow Ct",
-      "phone": "(555) 901-2345"
+      "phone": "(555) 901-2345",
+      "orderMethod": "DoorDash, Uber Eats, or call",
+      "menuLink": "https://india-palace.example.com",
+      "notes": "Lunch buffet weekdays 11-2, extensive vegetarian options"
     },
     {
       "id": 10,
       "name": "Pizza Express",
       "foodTypes": ["Italian", "Pizza"],
       "serviceTypes": ["takeout", "delivery"],
+      "profiles": ["sarah-enroute", "quick-lunch"],
       "address": "741 Spruce Ave",
-      "phone": "(555) 012-3456"
+      "phone": "(555) 012-3456",
+      "orderMethod": "Online at pizzaexpress.com or call",
+      "menuLink": "https://pizzaexpress.example.com/menu",
+      "notes": "30 minutes or free, great NY-style pizza"
     }
   ]
 }

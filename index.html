@@ -449,10 +449,27 @@
                     <div class="form-group">
                         <label>Service Types</label>
                         <div class="checkbox-group">
-                            <label><input type="checkbox" value="takeout"> Takeout</label>
-                            <label><input type="checkbox" value="delivery"> Delivery</label>
-                            <label><input type="checkbox" value="dine-in"> Dine In</label>
+                            <label><input type="checkbox" value="takeout" class="service-type-checkbox"> Takeout</label>
+                            <label><input type="checkbox" value="delivery" class="service-type-checkbox"> Delivery</label>
+                            <label><input type="checkbox" value="dine-in" class="service-type-checkbox"> Dine In</label>
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dining Profiles</label>
+                        <div class="checkbox-group" id="restaurantProfileCheckboxes">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>How to Order (optional)</label>
+                        <input type="text" id="orderMethod" placeholder="e.g., DoorDash, call, online">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Menu Link (optional)</label>
+                        <input type="text" id="menuLink" placeholder="https://restaurant.com/menu">
                     </div>
 
                     <div class="form-group">
@@ -465,6 +482,11 @@
                         <input type="text" id="phone" placeholder="(555) 123-4567">
                     </div>
 
+                    <div class="form-group">
+                        <label>Notes (optional)</label>
+                        <textarea id="notes" placeholder="Any special notes about this restaurant" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-family: inherit; resize: vertical;"></textarea>
+                    </div>
+
                     <button class="btn btn-success btn-small" onclick="addRestaurant()">Add Restaurant</button>
 
                     <div class="restaurant-list" id="restaurantList">
@@ -473,16 +495,11 @@
 
                     <h3 style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">Manage Profiles</h3>
 
+                    <p style="color: #6c757d; font-size: 0.9em; margin-bottom: 15px;">Profiles are assigned to restaurants above. Create profile names here, then tag restaurants with them.</p>
+
                     <div class="form-group">
                         <label>Profile Name</label>
                         <input type="text" id="profileName" placeholder="e.g., With Sarah">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Included Restaurants</label>
-                        <div class="checkbox-group" id="profileRestaurantCheckboxes">
-                            <!-- Will be populated dynamically -->
-                        </div>
                     </div>
 
                     <button class="btn btn-success btn-small" onclick="addProfile()">Add Profile</button>
@@ -508,10 +525,47 @@
         let isAuthenticated = false;
         let authToken = null;
 
+        // Configuration constants
+        const CONFIG = {
+            WHEEL_COLORS: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B88B', '#95E1D3'],
+            MIN_SPINS: 5,
+            MAX_SPINS: 8,
+            SPIN_DURATION: 4000, // milliseconds
+            CACHE_MAX_AGE: 60 // seconds
+        };
+
         // Canvas and wheel variables
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
-        const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B88B', '#95E1D3'];
+        const colors = CONFIG.WHEEL_COLORS;
+
+        /**
+         * Sanitize HTML to prevent XSS attacks
+         * Escapes special characters that could be interpreted as HTML
+         * @param {string} str - String to sanitize
+         * @returns {string} - Sanitized string safe for HTML insertion
+         */
+        function sanitizeHTML(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        /**
+         * Validate URL format
+         * @param {string} url - URL to validate
+         * @returns {boolean} - Whether URL is valid
+         */
+        function isValidURL(url) {
+            if (!url) return false;
+            try {
+                new URL(url);
+                return true;
+            } catch {
+                return false;
+            }
+        }
 
         // Initialize
         async function init() {
@@ -528,18 +582,18 @@
                 const response = await fetch('/api/restaurants');
                 const data = await response.json();
                 restaurants = data.restaurants || [];
-                profiles = data.profiles || [{id: 'all', name: 'All Restaurants', restaurantIds: []}];
+                profiles = data.profiles || [{id: 'all', name: 'All Restaurants'}];
             } catch (error) {
                 console.error('Error loading restaurants:', error);
                 // Fallback to local data
                 restaurants = [
-                    {id: 1, name: "Mario's Italian Bistro", foodTypes: ["Italian", "Pizza"], serviceTypes: ["takeout", "delivery", "dine-in"]},
-                    {id: 2, name: "Golden Dragon", foodTypes: ["Chinese", "Asian"], serviceTypes: ["takeout", "delivery"]},
-                    {id: 3, name: "Taco Fiesta", foodTypes: ["Mexican", "Latin"], serviceTypes: ["takeout", "dine-in"]},
-                    {id: 4, name: "Burger Palace", foodTypes: ["American", "Burgers"], serviceTypes: ["takeout", "delivery", "dine-in"]},
-                    {id: 5, name: "Sushi Paradise", foodTypes: ["Japanese", "Asian", "Sushi"], serviceTypes: ["takeout", "delivery", "dine-in"]}
+                    {id: 1, name: "Mario's Italian Bistro", foodTypes: ["Italian", "Pizza"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or DoorDash", menuLink: "", notes: ""},
+                    {id: 2, name: "Golden Dragon", foodTypes: ["Chinese", "Asian"], serviceTypes: ["takeout", "delivery"], profiles: [], orderMethod: "Phone", menuLink: "", notes: ""},
+                    {id: 3, name: "Taco Fiesta", foodTypes: ["Mexican", "Latin"], serviceTypes: ["takeout", "dine-in"], profiles: [], orderMethod: "Call ahead", menuLink: "", notes: ""},
+                    {id: 4, name: "Burger Palace", foodTypes: ["American", "Burgers"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or app", menuLink: "", notes: ""},
+                    {id: 5, name: "Sushi Paradise", foodTypes: ["Japanese", "Asian", "Sushi"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or online", menuLink: "", notes: ""}
                 ];
-                profiles = [{id: 'all', name: 'All Restaurants', restaurantIds: []}];
+                profiles = [{id: 'all', name: 'All Restaurants'}];
             }
         }
 
@@ -581,16 +635,13 @@
             const selectedFoodTypes = Array.from(document.querySelectorAll('#foodTypeFilters input:checked'))
                 .map(cb => cb.value);
 
-            // Get profile-filtered restaurant IDs
-            const profile = profiles.find(p => p.id === selectedProfile);
-            const profileRestaurantIds = profile && profile.restaurantIds.length > 0
-                ? profile.restaurantIds
-                : null;
-
             return restaurants.filter(r => {
                 // Filter by profile (if specific profile selected)
-                if (profileRestaurantIds && !profileRestaurantIds.includes(r.id)) {
-                    return false;
+                // "all" profile shows all restaurants, otherwise check if restaurant has the profile tag
+                if (selectedProfile !== 'all') {
+                    if (!r.profiles || !r.profiles.includes(selectedProfile)) {
+                        return false;
+                    }
                 }
 
                 // Filter by service type
@@ -714,14 +765,12 @@
             const numSegments = filteredRestaurants.length;
             const anglePerSegment = (2 * Math.PI) / numSegments;
 
-            // Random spin
-            const minSpins = 5;
-            const maxSpins = 8;
-            const spins = minSpins + Math.random() * (maxSpins - minSpins);
+            // Random spin calculation using configuration constants
+            const spins = CONFIG.MIN_SPINS + Math.random() * (CONFIG.MAX_SPINS - CONFIG.MIN_SPINS);
             const randomAngle = Math.random() * 2 * Math.PI;
             const totalRotation = spins * 2 * Math.PI + randomAngle;
 
-            const duration = 4000; // 4 seconds
+            const duration = CONFIG.SPIN_DURATION;
             const startTime = Date.now();
             const startRotation = currentRotation;
 
@@ -747,7 +796,12 @@
             animate();
         }
 
-        // Show result
+        /**
+         * Display selected restaurant result with sanitized content
+         * @param {Array} filteredRestaurants - Array of filtered restaurant objects
+         * @param {number} numSegments - Number of wheel segments
+         * @param {number} anglePerSegment - Angle per segment in radians
+         */
         function showResult(filteredRestaurants, numSegments, anglePerSegment) {
             const normalizedRotation = (currentRotation % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
             const pointerAngle = Math.PI / 2; // Pointer is at top
@@ -756,12 +810,32 @@
             const winner = filteredRestaurants[selectedIndex];
 
             const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = `
-                <h2>Selected: ${winner.name}</h2>
-                <p><strong>Food Types:</strong> ${winner.foodTypes.join(', ')}</p>
-                ${winner.address ? `<p><strong>Address:</strong> ${winner.address}</p>` : ''}
-                ${winner.phone ? `<p><strong>Phone:</strong> ${winner.phone}</p>` : ''}
-            `;
+
+            // Build result HTML with sanitized content to prevent XSS
+            let html = `<h2>Selected: ${sanitizeHTML(winner.name)}</h2>`;
+            html += `<p><strong>Food Types:</strong> ${winner.foodTypes.map(ft => sanitizeHTML(ft)).join(', ')}</p>`;
+
+            if (winner.orderMethod) {
+                html += `<p><strong>How to Order:</strong> ${sanitizeHTML(winner.orderMethod)}</p>`;
+            }
+
+            if (winner.menuLink && isValidURL(winner.menuLink)) {
+                html += `<p><strong>Menu:</strong> <a href="${sanitizeHTML(winner.menuLink)}" target="_blank" rel="noopener noreferrer">View Menu</a></p>`;
+            }
+
+            if (winner.address) {
+                html += `<p><strong>Address:</strong> ${sanitizeHTML(winner.address)}</p>`;
+            }
+
+            if (winner.phone) {
+                html += `<p><strong>Phone:</strong> ${sanitizeHTML(winner.phone)}</p>`;
+            }
+
+            if (winner.notes) {
+                html += `<p><strong>Notes:</strong> ${sanitizeHTML(winner.notes)}</p>`;
+            }
+
+            resultDiv.innerHTML = html;
         }
 
         // Authentication
@@ -819,14 +893,20 @@
         async function addRestaurant() {
             const name = document.getElementById('restaurantName').value.trim();
             const foodTypesInput = document.getElementById('foodTypes').value.trim();
+            const orderMethod = document.getElementById('orderMethod').value.trim();
+            const menuLink = document.getElementById('menuLink').value.trim();
             const address = document.getElementById('address').value.trim();
             const phone = document.getElementById('phone').value.trim();
+            const notes = document.getElementById('notes').value.trim();
 
-            const serviceTypes = Array.from(document.querySelectorAll('.checkbox-group input:checked'))
+            const serviceTypes = Array.from(document.querySelectorAll('.service-type-checkbox:checked'))
+                .map(cb => cb.value);
+
+            const selectedProfiles = Array.from(document.querySelectorAll('.restaurant-profile-checkbox:checked'))
                 .map(cb => cb.value);
 
             if (!name || !foodTypesInput || serviceTypes.length === 0) {
-                alert('Please fill in all required fields');
+                alert('Please fill in name, food types, and at least one service type');
                 return;
             }
 
@@ -837,8 +917,12 @@
                 name,
                 foodTypes,
                 serviceTypes,
+                profiles: selectedProfiles,
+                orderMethod,
+                menuLink,
                 address,
-                phone
+                phone,
+                notes
             };
 
             try {
@@ -860,9 +944,13 @@
                     // Clear form
                     document.getElementById('restaurantName').value = '';
                     document.getElementById('foodTypes').value = '';
+                    document.getElementById('orderMethod').value = '';
+                    document.getElementById('menuLink').value = '';
                     document.getElementById('address').value = '';
                     document.getElementById('phone').value = '';
-                    document.querySelectorAll('.checkbox-group input').forEach(cb => cb.checked = false);
+                    document.getElementById('notes').value = '';
+                    document.querySelectorAll('.service-type-checkbox').forEach(cb => cb.checked = false);
+                    document.querySelectorAll('.restaurant-profile-checkbox').forEach(cb => cb.checked = false);
                 } else {
                     alert('Failed to add restaurant');
                 }
@@ -900,38 +988,52 @@
             }
         }
 
-        // Update restaurant list in admin panel
+        /**
+         * Update restaurant list in admin panel with sanitized content
+         */
         function updateRestaurantList() {
             const container = document.getElementById('restaurantList');
             container.innerHTML = '<h4 style="margin-bottom: 10px;">Current Restaurants:</h4>';
 
             restaurants.forEach(r => {
+                const profileTags = r.profiles && r.profiles.length > 0
+                    ? r.profiles.map(p => sanitizeHTML(p)).join(', ')
+                    : 'No profiles';
                 const item = document.createElement('div');
                 item.className = 'restaurant-item';
                 item.innerHTML = `
                     <div class="restaurant-item-info">
-                        <div class="restaurant-item-name">${r.name}</div>
-                        <div class="restaurant-item-types">${r.foodTypes.join(', ')} • ${r.serviceTypes.join(', ')}</div>
+                        <div class="restaurant-item-name">${sanitizeHTML(r.name)}</div>
+                        <div class="restaurant-item-types">${r.foodTypes.map(ft => sanitizeHTML(ft)).join(', ')} • ${r.serviceTypes.map(st => sanitizeHTML(st)).join(', ')}</div>
+                        <div class="restaurant-item-types" style="font-size: 0.8em; margin-top: 3px;">Profiles: ${profileTags}</div>
                     </div>
                     <button class="btn btn-danger btn-small" onclick="deleteRestaurant(${r.id})">Delete</button>
                 `;
                 container.appendChild(item);
             });
 
-            // Also update profile restaurant checkboxes
-            updateProfileRestaurantCheckboxes();
+            // Update profile checkboxes in restaurant form
+            updateRestaurantProfileCheckboxes();
         }
 
-        // Profile management functions
-        function updateProfileRestaurantCheckboxes() {
-            const container = document.getElementById('profileRestaurantCheckboxes');
+        // Populate profile checkboxes in restaurant form
+        function updateRestaurantProfileCheckboxes() {
+            const container = document.getElementById('restaurantProfileCheckboxes');
             container.innerHTML = '';
 
-            restaurants.forEach(r => {
+            // Filter out 'all' profile as it's not a taggable profile
+            const taggableProfiles = profiles.filter(p => p.id !== 'all');
+
+            if (taggableProfiles.length === 0) {
+                container.innerHTML = '<p style="color: #6c757d; font-size: 0.9em;">No profiles created yet</p>';
+                return;
+            }
+
+            taggableProfiles.forEach(profile => {
                 const label = document.createElement('label');
                 label.innerHTML = `
-                    <input type="checkbox" value="${r.id}" class="profile-restaurant-checkbox">
-                    ${r.name}
+                    <input type="checkbox" value="${profile.id}" class="restaurant-profile-checkbox">
+                    ${profile.name}
                 `;
                 container.appendChild(label);
             });
@@ -939,16 +1041,9 @@
 
         async function addProfile() {
             const name = document.getElementById('profileName').value.trim();
-            const selectedRestaurants = Array.from(document.querySelectorAll('.profile-restaurant-checkbox:checked'))
-                .map(cb => parseInt(cb.value));
 
             if (!name) {
                 alert('Please enter a profile name');
-                return;
-            }
-
-            if (selectedRestaurants.length === 0) {
-                alert('Please select at least one restaurant');
                 return;
             }
 
@@ -963,8 +1058,7 @@
 
             const newProfile = {
                 id: profileId,
-                name: name,
-                restaurantIds: selectedRestaurants
+                name: name
             };
 
             try {
@@ -981,10 +1075,10 @@
                     await loadRestaurants();
                     updateProfileSelector();
                     updateProfileList();
+                    updateRestaurantProfileCheckboxes();
 
                     // Clear form
                     document.getElementById('profileName').value = '';
-                    document.querySelectorAll('.profile-restaurant-checkbox').forEach(cb => cb.checked = false);
                 } else {
                     alert('Failed to add profile');
                 }
@@ -1033,24 +1127,31 @@
             }
         }
 
+        /**
+         * Update profile list in admin panel with sanitized content
+         */
         function updateProfileList() {
             const container = document.getElementById('profileList');
             container.innerHTML = '<h4 style="margin-bottom: 10px;">Current Profiles:</h4>';
 
             profiles.filter(p => p.id !== 'all').forEach(profile => {
-                const restaurantNames = profile.restaurantIds
-                    .map(id => restaurants.find(r => r.id === id)?.name)
-                    .filter(name => name)
-                    .join(', ');
+                // Find restaurants tagged with this profile
+                const taggedRestaurants = restaurants
+                    .filter(r => r.profiles && r.profiles.includes(profile.id))
+                    .map(r => sanitizeHTML(r.name));
+
+                const restaurantNames = taggedRestaurants.length > 0
+                    ? taggedRestaurants.join(', ')
+                    : 'No restaurants tagged';
 
                 const item = document.createElement('div');
                 item.className = 'restaurant-item';
                 item.innerHTML = `
                     <div class="restaurant-item-info">
-                        <div class="restaurant-item-name">${profile.name}</div>
-                        <div class="restaurant-item-types">${restaurantNames || 'No restaurants'}</div>
+                        <div class="restaurant-item-name">${sanitizeHTML(profile.name)}</div>
+                        <div class="restaurant-item-types" style="font-size: 0.85em;">${restaurantNames}</div>
                     </div>
-                    <button class="btn btn-danger btn-small" onclick="deleteProfile('${profile.id}')">Delete</button>
+                    <button class="btn btn-danger btn-small" onclick="deleteProfile('${sanitizeHTML(profile.id)}')">Delete</button>
                 `;
                 container.appendChild(item);
             });

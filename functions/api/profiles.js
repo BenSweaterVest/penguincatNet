@@ -171,9 +171,36 @@ export async function onRequestPost(context) {
     const newProfile = await request.json();
 
     // Validate required fields per data schema
-    if (!newProfile.id || !newProfile.name || !newProfile.restaurantIds) {
+    if (!newProfile.id || !newProfile.name) {
       return new Response(JSON.stringify({
         error: 'Missing required fields'
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
+    // Validate profile ID format (lowercase, hyphenated)
+    if (!/^[a-z0-9-]+$/.test(newProfile.id)) {
+      return new Response(JSON.stringify({
+        error: 'Profile ID must contain only lowercase letters, numbers, and hyphens'
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
+    // Check for reserved profile IDs
+    const reservedIds = ['all'];
+    if (reservedIds.includes(newProfile.id)) {
+      return new Response(JSON.stringify({
+        error: 'Profile ID is reserved and cannot be used'
       }), {
         status: 400,
         headers: {
@@ -188,7 +215,7 @@ export async function onRequestPost(context) {
 
     // Ensure profiles array exists
     if (!data.profiles) {
-      data.profiles = [{id: 'all', name: 'All Restaurants', restaurantIds: []}];
+      data.profiles = [{id: 'all', name: 'All Restaurants'}];
     }
 
     // Check if profile with this ID already exists
