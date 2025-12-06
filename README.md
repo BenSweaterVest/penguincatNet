@@ -226,20 +226,42 @@ The `restaurants.json` file also maintains an array of dining profile objects. P
 
 ### Current Implementation
 
+The application implements multiple security layers to protect data and prevent unauthorized access:
+
+**Authentication and Authorization:**
 - Administrative credentials stored as encrypted environment variables in Cloudflare
 - GitHub API token stored as encrypted secret
-- Authentication required for all write operations (POST, DELETE)
-- CORS headers configured for cross-origin resource sharing
 - Token-based authentication for session management
+- Authentication required for all write operations (POST, DELETE)
+
+**Input Validation and Sanitization:**
+- Server-side validation of all incoming data
+- Type checking for arrays and required fields
+- Service type validation against allowed values (takeout, delivery, dine-in)
+- Profile ID format validation (lowercase, alphanumeric, hyphens only)
+- Reserved keyword protection for profile IDs
+- Client-side HTML sanitization to prevent XSS attacks
+- URL validation for menu links
+
+**Data Integrity:**
+- Cascade cleanup when profiles are deleted (removes profile references from restaurants)
+- SHA-based conflict detection for GitHub commits
+- Array existence checks before modification operations
+
+**Network Security:**
+- CORS headers configured for cross-origin resource sharing
+- **IMPORTANT: HTTPS Required** - All production deployments must use HTTPS to protect credentials in transit
 
 ### Production Recommendations
 
 For enterprise or high-security deployments, consider implementing:
-- JWT (JSON Web Tokens) for stateless authentication
+- JWT (JSON Web Tokens) with expiration for stateless authentication
 - OAuth 2.0 integration for identity management
-- Rate limiting on API endpoints
+- Rate limiting on API endpoints to prevent brute force attacks
 - Audit logging for administrative actions
 - Multi-factor authentication for admin access
+- Content Security Policy (CSP) headers
+- Regular security audits and dependency updates
 
 ## Customization Guide
 
@@ -247,14 +269,22 @@ For enterprise or high-security deployments, consider implementing:
 
 **Color Scheme**
 - Primary gradient colors defined in CSS: `#667eea` and `#764ba2`
-- Wheel segment colors configured in JavaScript `colors` array
+- Wheel segment colors configured in JavaScript `CONFIG.WHEEL_COLORS` array
 - Modify these values in `index.html` for brand consistency
 
-**Wheel Behavior**
-- `minSpins`: Minimum rotation cycles (default: 5)
-- `maxSpins`: Maximum rotation cycles (default: 8)
-- `duration`: Animation length in milliseconds (default: 4000)
+**Wheel Behavior Configuration**
+
+All wheel behavior parameters are centralized in the `CONFIG` constant at the top of the JavaScript section in `index.html`:
+
+- `WHEEL_COLORS`: Array of hex color codes for wheel segments
+- `MIN_SPINS`: Minimum rotation cycles (default: 5)
+- `MAX_SPINS`: Maximum rotation cycles (default: 8)
+- `SPIN_DURATION`: Animation length in milliseconds (default: 4000)
+- `CACHE_MAX_AGE`: API response cache duration in seconds (default: 60)
+
+**Layout Dimensions**
 - Canvas dimensions: Controlled via `.wheel-container` CSS class
+- Responsive breakpoint: 768px (configured in media queries)
 
 ### Data Model Extension
 
@@ -300,6 +330,21 @@ To add additional fields to restaurant records:
 4. Check GitHub API rate limits have not been exceeded
 5. Review Cloudflare Functions logs for GitHub API errors
 
+### Input Validation Errors
+
+**Symptom**: Receiving "Invalid service types" or "Profile ID format" errors when adding data
+
+**Explanation**: The application enforces strict validation rules to maintain data integrity
+
+**Common Validation Rules**:
+- Service types must be one of: `takeout`, `delivery`, or `dine-in`
+- Profile IDs must contain only lowercase letters, numbers, and hyphens
+- Food types and service types must be provided as arrays
+- Reserved profile IDs (e.g., "all") cannot be used for custom profiles
+- Restaurant names, food types, and service types are required fields
+
+**Resolution**: Ensure submitted data conforms to the validation rules. Check browser console for specific error messages.
+
 ## Local Development
 
 ### Development Environment Setup
@@ -343,8 +388,44 @@ All API endpoints return JSON responses and include appropriate CORS headers.
 
 ## Technical Notes
 
+### Architecture and Technology Stack
+
 - Built for Cloudflare Pages with Functions (v2)
-- Client-side rendering using vanilla JavaScript
-- Canvas API for wheel visualization
-- GitHub Contents API for data persistence
-- No build process or dependencies required
+- Client-side rendering using vanilla JavaScript (no framework dependencies)
+- HTML5 Canvas API for wheel visualization and animations
+- GitHub Contents API for serverless data persistence
+- No build process, bundlers, or package dependencies required
+
+### Code Quality and Best Practices
+
+The codebase implements several software engineering best practices:
+
+**Security:**
+- Input validation and sanitization at both client and server layers
+- XSS prevention through HTML escaping
+- CORS configuration for cross-origin requests
+- Secure token-based authentication
+
+**Code Organization:**
+- Configuration constants centralized in `CONFIG` object
+- Modular function design with single responsibilities
+- JSDoc-style documentation for functions
+- Descriptive variable and function naming conventions
+
+**Error Handling:**
+- Try-catch blocks for all async operations
+- Graceful fallbacks when API calls fail
+- User-friendly error messages
+- Validation errors with specific feedback
+
+**Data Integrity:**
+- SHA-based conflict detection for concurrent modifications
+- Cascade cleanup for referential integrity
+- Type validation for all data structures
+- Array existence checks before modifications
+
+**Performance:**
+- Request animation frame for smooth wheel animations
+- Easing functions for natural motion
+- Response caching with configurable TTL
+- Minimal DOM manipulations

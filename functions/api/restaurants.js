@@ -181,8 +181,54 @@ export async function onRequestPost(context) {
       });
     }
 
+    // Validate data types and structure
+    if (!Array.isArray(newRestaurant.foodTypes) || !Array.isArray(newRestaurant.serviceTypes)) {
+      return new Response(JSON.stringify({
+        error: 'foodTypes and serviceTypes must be arrays'
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
+    // Validate service types contain only valid values
+    const validServiceTypes = ['takeout', 'delivery', 'dine-in'];
+    const invalidServiceTypes = newRestaurant.serviceTypes.filter(st => !validServiceTypes.includes(st));
+    if (invalidServiceTypes.length > 0) {
+      return new Response(JSON.stringify({
+        error: `Invalid service types: ${invalidServiceTypes.join(', ')}`
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
+    // Validate profiles array if provided
+    if (newRestaurant.profiles && !Array.isArray(newRestaurant.profiles)) {
+      return new Response(JSON.stringify({
+        error: 'profiles must be an array'
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
     // Retrieve current data and file SHA
     const { data, sha } = await fetchFromGitHub(env);
+
+    // Ensure restaurants array exists
+    if (!data.restaurants) {
+      data.restaurants = [];
+    }
 
     // Append new restaurant to existing data
     data.restaurants.push(newRestaurant);

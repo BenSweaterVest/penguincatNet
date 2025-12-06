@@ -175,6 +175,15 @@ export async function onRequestDelete(context) {
     const deletedProfile = data.profiles[index];
     data.profiles.splice(index, 1);
 
+    // Clean up profile references in restaurants (cascade cleanup)
+    if (data.restaurants) {
+      data.restaurants.forEach(restaurant => {
+        if (restaurant.profiles && Array.isArray(restaurant.profiles)) {
+          restaurant.profiles = restaurant.profiles.filter(p => p !== profileId);
+        }
+      });
+    }
+
     // Commit changes to repository
     await updateGitHub(
       env,

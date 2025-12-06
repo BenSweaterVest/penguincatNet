@@ -183,6 +183,33 @@ export async function onRequestPost(context) {
       });
     }
 
+    // Validate profile ID format (lowercase, hyphenated)
+    if (!/^[a-z0-9-]+$/.test(newProfile.id)) {
+      return new Response(JSON.stringify({
+        error: 'Profile ID must contain only lowercase letters, numbers, and hyphens'
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
+    // Check for reserved profile IDs
+    const reservedIds = ['all'];
+    if (reservedIds.includes(newProfile.id)) {
+      return new Response(JSON.stringify({
+        error: 'Profile ID is reserved and cannot be used'
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
     // Retrieve current data and file SHA
     const { data, sha } = await fetchFromGitHub(env);
 
