@@ -162,20 +162,66 @@
             margin-bottom: 30px;
         }
 
-        .profile-section select {
+        .autocomplete-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .profile-section input[type="text"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #ced4da;
             border-radius: 5px;
             font-size: 1em;
             background: white;
-            cursor: pointer;
+            box-sizing: border-box;
         }
 
-        .profile-section select:focus {
+        .profile-section input[type="text"]:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .autocomplete-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .autocomplete-suggestions.active {
+            display: block;
+        }
+
+        .autocomplete-suggestion {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .autocomplete-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-suggestion:hover,
+        .autocomplete-suggestion.highlighted {
+            background: #f8f9fa;
+        }
+
+        .autocomplete-suggestion.selected {
+            background: #e7f3ff;
+            font-weight: 500;
         }
 
         .filter-group {
@@ -392,10 +438,18 @@
 
             <h3>Dining Profile</h3>
             <div class="profile-section">
-                <select id="profileSelector" onchange="onProfileChange()">
-                    <option value="all">All Restaurants</option>
-                    <!-- Will be populated dynamically -->
-                </select>
+                <div class="autocomplete-wrapper">
+                    <input
+                        type="text"
+                        id="profileInput"
+                        placeholder="Type to search profiles..."
+                        autocomplete="off"
+                        oninput="handleProfileInput()"
+                        onfocus="handleProfileFocus()"
+                        onblur="handleProfileBlur()"
+                    >
+                    <div id="profileSuggestions" class="autocomplete-suggestions"></div>
+                </div>
             </div>
 
             <h3>Filter by Food Type</h3>
@@ -543,7 +597,7 @@
         // Initialize
         async function init() {
             await loadRestaurants();
-            updateProfileSelector();
+            updateProfileInput();
             updateFoodTypeFilters();
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
@@ -580,23 +634,100 @@
         }
 
         // Profile management
-        function updateProfileSelector() {
-            const selector = document.getElementById('profileSelector');
-            selector.innerHTML = '';
-
-            profiles.forEach(profile => {
-                const option = document.createElement('option');
-                option.value = profile.id;
-                option.textContent = profile.name;
-                if (profile.id === selectedProfile) {
-                    option.selected = true;
-                }
-                selector.appendChild(option);
-            });
+        /**
+         * Update the profile input field to show the current selection
+         */
+        function updateProfileInput() {
+            const input = document.getElementById('profileInput');
+            const currentProfile = profiles.find(p => p.id === selectedProfile);
+            if (currentProfile) {
+                input.value = currentProfile.name;
+            }
         }
 
-        function onProfileChange() {
-            selectedProfile = document.getElementById('profileSelector').value;
+        /**
+         * Handle input changes in the profile autocomplete field
+         * Shows filtered suggestions based on user input
+         */
+        function handleProfileInput() {
+            const input = document.getElementById('profileInput');
+            const suggestionsContainer = document.getElementById('profileSuggestions');
+            const searchTerm = input.value.toLowerCase().trim();
+
+            // Filter profiles based on search term
+            const filteredProfiles = profiles.filter(profile =>
+                profile.name.toLowerCase().includes(searchTerm)
+            );
+
+            // Clear and populate suggestions
+            suggestionsContainer.innerHTML = '';
+
+            if (searchTerm === '' || filteredProfiles.length === 0) {
+                suggestionsContainer.classList.remove('active');
+                return;
+            }
+
+            filteredProfiles.forEach(profile => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-suggestion';
+                if (profile.id === selectedProfile) {
+                    div.classList.add('selected');
+                }
+                div.textContent = profile.name;
+                div.onclick = () => selectProfile(profile.id, profile.name);
+                suggestionsContainer.appendChild(div);
+            });
+
+            suggestionsContainer.classList.add('active');
+        }
+
+        /**
+         * Handle focus on the profile input field
+         * Shows all available profiles
+         */
+        function handleProfileFocus() {
+            const input = document.getElementById('profileInput');
+            const suggestionsContainer = document.getElementById('profileSuggestions');
+
+            // Show all profiles when focused
+            suggestionsContainer.innerHTML = '';
+
+            profiles.forEach(profile => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-suggestion';
+                if (profile.id === selectedProfile) {
+                    div.classList.add('selected');
+                }
+                div.textContent = profile.name;
+                div.onclick = () => selectProfile(profile.id, profile.name);
+                suggestionsContainer.appendChild(div);
+            });
+
+            suggestionsContainer.classList.add('active');
+        }
+
+        /**
+         * Handle blur event on the profile input field
+         * Hides suggestions after a short delay (to allow click events to fire)
+         */
+        function handleProfileBlur() {
+            setTimeout(() => {
+                const suggestionsContainer = document.getElementById('profileSuggestions');
+                suggestionsContainer.classList.remove('active');
+            }, 200);
+        }
+
+        /**
+         * Select a profile from the autocomplete suggestions
+         * @param {string} profileId - The ID of the selected profile
+         * @param {string} profileName - The display name of the selected profile
+         */
+        function selectProfile(profileId, profileName) {
+            selectedProfile = profileId;
+            const input = document.getElementById('profileInput');
+            input.value = profileName;
+            const suggestionsContainer = document.getElementById('profileSuggestions');
+            suggestionsContainer.classList.remove('active');
             drawWheel();
         }
 
@@ -1049,7 +1180,7 @@
 
                 if (response.ok) {
                     await loadRestaurants();
-                    updateProfileSelector();
+                    updateProfileInput();
                     updateProfileList();
                     updateRestaurantProfileCheckboxes();
 
@@ -1085,13 +1216,13 @@
 
                 if (response.ok) {
                     await loadRestaurants();
-                    updateProfileSelector();
+                    updateProfileInput();
                     updateProfileList();
 
                     // Reset to "all" if deleted profile was selected
                     if (selectedProfile === profileId) {
                         selectedProfile = 'all';
-                        document.getElementById('profileSelector').value = 'all';
+                        updateProfileInput();
                         drawWheel();
                     }
                 } else {
