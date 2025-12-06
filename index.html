@@ -246,10 +246,54 @@
             cursor: pointer;
         }
 
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 0;
+            margin-left: 10px;
+            transition: transform 0.2s;
+            vertical-align: middle;
+        }
+
+        .btn-icon:hover {
+            transform: scale(1.2);
+        }
+
         .admin-section {
             border-top: 1px solid #dee2e6;
             padding-top: 20px;
             margin-top: 20px;
+        }
+
+        /* Service Type Wheel Styles */
+        .service-wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+
+        #serviceWheelCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .wheel-pointer-small {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #ff6b6b;
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+            z-index: 10;
         }
 
         /* Modal Styles */
@@ -390,6 +434,22 @@
     </style>
 </head>
 <body>
+    <!-- Service Type Wheel Modal -->
+    <div id="serviceWheelModal" class="modal">
+        <div class="modal-content">
+            <h2>Spin for Service Type!</h2>
+            <div class="service-wheel-container">
+                <div class="wheel-pointer-small"></div>
+                <canvas id="serviceWheelCanvas"></canvas>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn" id="spinServiceBtn" onclick="spinServiceWheel()">Spin!</button>
+                <button class="btn btn-secondary" style="margin-left: 10px;" onclick="closeServiceWheel()">Cancel</button>
+            </div>
+            <div id="serviceResult" style="margin-top: 20px; text-align: center; font-size: 1.2em; color: #667eea; font-weight: bold;"></div>
+        </div>
+    </div>
+
     <!-- Login Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
@@ -426,13 +486,14 @@
         </div>
 
         <div class="sidebar">
-            <h3>Service Type</h3>
+            <h3>Service Type <button class="btn-icon" onclick="showServiceWheel()" title="Spin to choose service type">🎡</button></h3>
             <div class="profile-section">
                 <select id="serviceTypeSelector" onchange="onServiceTypeChange()">
                     <option value="all">All Service Types</option>
                     <option value="takeout">Takeout</option>
                     <option value="delivery">Delivery</option>
                     <option value="dine-in">Dine In</option>
+                    <option value="at-home">At Home</option>
                 </select>
             </div>
 
@@ -479,6 +540,7 @@
                             <label><input type="checkbox" value="takeout" class="service-type-checkbox"> Takeout</label>
                             <label><input type="checkbox" value="delivery" class="service-type-checkbox"> Delivery</label>
                             <label><input type="checkbox" value="dine-in" class="service-type-checkbox"> Dine In</label>
+                            <label><input type="checkbox" value="at-home" class="service-type-checkbox"> At Home</label>
                         </div>
                     </div>
 
@@ -601,6 +663,148 @@
             updateFoodTypeFilters();
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
+            initServiceWheel();
+        }
+
+        // Service Type Wheel Functions
+        let serviceWheelRotation = 0;
+        let isServiceWheelSpinning = false;
+        const serviceTypes = [
+            { id: 'takeout', name: 'Takeout', color: '#FF6B6B' },
+            { id: 'delivery', name: 'Delivery', color: '#4ECDC4' },
+            { id: 'dine-in', name: 'Dine In', color: '#45B7D1' },
+            { id: 'at-home', name: 'At Home', color: '#F7DC6F' }
+        ];
+
+        function initServiceWheel() {
+            const canvas = document.getElementById('serviceWheelCanvas');
+            const container = document.querySelector('.service-wheel-container');
+            if (!canvas || !container) return;
+
+            const size = Math.min(container.offsetWidth, container.offsetHeight);
+            canvas.width = size;
+            canvas.height = size;
+            drawServiceWheel();
+        }
+
+        function showServiceWheel() {
+            document.getElementById('serviceWheelModal').classList.add('active');
+            document.getElementById('serviceResult').textContent = '';
+            initServiceWheel();
+        }
+
+        function closeServiceWheel() {
+            document.getElementById('serviceWheelModal').classList.remove('active');
+        }
+
+        function drawServiceWheel() {
+            const canvas = document.getElementById('serviceWheelCanvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const numSegments = serviceTypes.length;
+            const anglePerSegment = (2 * Math.PI) / numSegments;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            serviceTypes.forEach((type, i) => {
+                const startAngle = i * anglePerSegment + serviceWheelRotation;
+                const endAngle = (i + 1) * anglePerSegment + serviceWheelRotation;
+
+                // Draw segment
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = type.color;
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + anglePerSegment / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText(type.name, radius - 15, 5);
+                ctx.restore();
+            });
+
+            // Draw center circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        function spinServiceWheel() {
+            if (isServiceWheelSpinning) return;
+
+            isServiceWheelSpinning = true;
+            document.getElementById('spinServiceBtn').disabled = true;
+            document.getElementById('serviceResult').textContent = '';
+
+            const numSegments = serviceTypes.length;
+            const anglePerSegment = (2 * Math.PI) / numSegments;
+
+            // Random spin
+            const spins = 3 + Math.random() * 3; // 3-6 spins
+            const randomAngle = Math.random() * 2 * Math.PI;
+            const totalRotation = spins * 2 * Math.PI + randomAngle;
+
+            const duration = 3000; // 3 seconds
+            const startTime = Date.now();
+            const startRotation = serviceWheelRotation;
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing function (ease out)
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+
+                serviceWheelRotation = startRotation + totalRotation * easeOut;
+                drawServiceWheel();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isServiceWheelSpinning = false;
+                    document.getElementById('spinServiceBtn').disabled = false;
+                    showServiceResult(numSegments, anglePerSegment);
+                }
+            }
+
+            animate();
+        }
+
+        function showServiceResult(numSegments, anglePerSegment) {
+            const normalizedRotation = (serviceWheelRotation % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+            const pointerAngle = Math.PI / 2; // Pointer is at top
+            const selectedAngle = (2 * Math.PI - normalizedRotation + pointerAngle) % (2 * Math.PI);
+            const selectedIndex = Math.floor(selectedAngle / anglePerSegment) % numSegments;
+            const selectedType = serviceTypes[selectedIndex];
+
+            document.getElementById('serviceResult').textContent = `🎉 ${selectedType.name}!`;
+
+            // Update the dropdown to match
+            selectedService = selectedType.id;
+            document.getElementById('serviceTypeSelector').value = selectedType.id;
+
+            // Update the main wheel after a short delay
+            setTimeout(() => {
+                drawWheel();
+                closeServiceWheel();
+            }, 2000);
         }
 
         // Load restaurants from API
