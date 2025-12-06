@@ -115,10 +115,19 @@ The application is configured to serve from `index.html` in the repository root.
 1. Access admin panel via "Admin Login" button in sidebar
 2. Authenticate using the configured `ADMIN_PASSWORD` value
 3. Available administrative functions:
-   - **Add Restaurant**: Submit new restaurant entries with required metadata (name, food types, service types, optional address and phone)
+
+   **Restaurant Management:**
+   - **Add Restaurant**: Create new restaurant entries with the following fields:
+     - Required: name, food types, service types
+     - Optional: dining profiles (checkboxes), ordering instructions, menu link, address, phone, notes
    - **Remove Restaurant**: Delete existing entries from the data store
-   - **Add Profile**: Create dining profiles by specifying a name and selecting included restaurants
+
+   **Profile Management:**
+   - **Add Profile**: Create profile labels (just name required). After creation, profiles can be assigned to restaurants via the restaurant form
    - **Remove Profile**: Delete existing profiles (default "All Restaurants" profile cannot be deleted)
+
+   **Workflow**: Create profiles first using simple names, then tag restaurants with appropriate profiles when adding or editing them. The profile list shows which restaurants are currently tagged with each profile.
+
 4. Administrative session can be terminated via logout function
 
 ## Application Structure
@@ -153,8 +162,12 @@ The `restaurants.json` file maintains an array of restaurant objects with the fo
       "name": "Mario's Italian Bistro",
       "foodTypes": ["Italian", "Pizza"],
       "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["sarah-enroute", "quick-lunch"],
+      "orderMethod": "Call or DoorDash",
+      "menuLink": "https://marios-bistro.example.com/menu",
       "address": "123 Main St",
-      "phone": "(555) 123-4567"
+      "phone": "(555) 123-4567",
+      "notes": "Excellent for large groups"
     }
   ]
 }
@@ -168,25 +181,31 @@ The `restaurants.json` file maintains an array of restaurant objects with the fo
 | `name` | String | Yes | Restaurant business name |
 | `foodTypes` | Array[String] | Yes | Cuisine categories for filtering |
 | `serviceTypes` | Array[String] | Yes | Available service options: "takeout", "delivery", "dine-in" |
+| `profiles` | Array[String] | No | Profile IDs this restaurant is tagged with (empty array means no specific profiles) |
+| `orderMethod` | String | No | Instructions for ordering (e.g., "DoorDash", "call ahead", "online") |
+| `menuLink` | String | No | URL to the restaurant's menu |
 | `address` | String | No | Physical location address |
 | `phone` | String | No | Contact telephone number |
+| `notes` | String | No | Additional information about the restaurant |
 
 ### Profile Object Structure
 
-The `restaurants.json` file also maintains an array of dining profile objects:
+The `restaurants.json` file also maintains an array of dining profile objects. Profiles are lightweight labels that restaurants can be tagged with:
 
 ```json
 {
   "profiles": [
     {
       "id": "all",
-      "name": "All Restaurants",
-      "restaurantIds": []
+      "name": "All Restaurants"
     },
     {
       "id": "sarah-enroute",
-      "name": "With Sarah (En Route)",
-      "restaurantIds": [1, 4, 5, 10]
+      "name": "With Sarah (En Route)"
+    },
+    {
+      "id": "quick-lunch",
+      "name": "Quick Lunch Options"
     }
   ]
 }
@@ -196,11 +215,12 @@ The `restaurants.json` file also maintains an array of dining profile objects:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `id` | String | Yes | Unique identifier, generated from profile name |
+| `id` | String | Yes | Unique identifier, generated from profile name (lowercase, hyphenated) |
 | `name` | String | Yes | Display name for the dining profile |
-| `restaurantIds` | Array[Integer] | Yes | List of restaurant IDs included in this profile (empty array means all restaurants) |
 
-**Note**: The "all" profile with empty `restaurantIds` array is a special default profile that includes all restaurants. This profile cannot be deleted.
+**Data Model**: Profiles are assigned to restaurants via the `profiles` array in each restaurant object, rather than profiles containing restaurant IDs. This restaurant-centric approach makes data management more intuitive and easier to maintain.
+
+**Special Profile**: The "all" profile is a reserved profile ID that shows all restaurants regardless of their profile tags. This profile cannot be deleted.
 
 ## Security Considerations
 

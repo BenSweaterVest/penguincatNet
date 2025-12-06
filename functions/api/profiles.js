@@ -171,7 +171,7 @@ export async function onRequestPost(context) {
     const newProfile = await request.json();
 
     // Validate required fields per data schema
-    if (!newProfile.id || !newProfile.name || !newProfile.restaurantIds) {
+    if (!newProfile.id || !newProfile.name) {
       return new Response(JSON.stringify({
         error: 'Missing required fields'
       }), {
@@ -188,7 +188,7 @@ export async function onRequestPost(context) {
 
     // Ensure profiles array exists
     if (!data.profiles) {
-      data.profiles = [{id: 'all', name: 'All Restaurants', restaurantIds: []}];
+      data.profiles = [{id: 'all', name: 'All Restaurants'}];
     }
 
     // Check if profile with this ID already exists
