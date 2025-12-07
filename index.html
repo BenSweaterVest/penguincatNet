@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurant Picker</title>
-    <link rel="icon" type="image/png" href="https://thesweatervest.com/favicon.png">
+    <link rel="icon" type="image/png" href="https://thesweatervest.com/wp-content/uploads/2025/02/SweaterVest-Solutions-WIDECROP-300x300.png">
     <style>
         * {
             margin: 0;
@@ -412,6 +412,56 @@
             margin-bottom: 20px;
         }
 
+        .unsaved-changes-banner {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95em;
+        }
+
+        .unsaved-changes-banner.active {
+            display: flex;
+        }
+
+        .unsaved-changes-count {
+            font-weight: bold;
+            color: #856404;
+        }
+
+        .save-actions {
+            display: none;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #dee2e6;
+        }
+
+        .save-actions.active {
+            display: flex;
+        }
+
+        .restaurant-item.modified {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+        }
+
+        .restaurant-item.pending-add {
+            background: #d4edda;
+            border-left: 3px solid #28a745;
+        }
+
+        .restaurant-item.pending-delete {
+            background: #f8d7da;
+            border-left: 3px solid #dc3545;
+            opacity: 0.7;
+        }
+
         .footer {
             position: fixed;
             bottom: 0;
@@ -550,6 +600,10 @@
                 <button class="btn btn-small" id="adminBtn" onclick="showLogin()">Admin Login</button>
 
                 <div id="adminPanel" class="admin-panel">
+                    <div id="unsavedChangesBanner" class="unsaved-changes-banner">
+                        ⚠️ You have <span class="unsaved-changes-count" id="unsavedCount">0</span> unsaved change(s)
+                    </div>
+
                     <h3>Manage Restaurants</h3>
 
                     <div class="form-group">
@@ -644,6 +698,11 @@
                         <!-- Will be populated dynamically -->
                     </div>
 
+                    <div id="saveActions" class="save-actions">
+                        <button class="btn btn-success" onclick="saveAllChanges()">💾 Save All Changes</button>
+                        <button class="btn btn-danger" onclick="discardChanges()">🗑️ Discard Changes</button>
+                    </div>
+
                     <button class="btn btn-secondary btn-small" onclick="logout()" style="margin-top: 20px;">Logout</button>
                 </div>
             </div>
@@ -660,6 +719,17 @@
         let isSpinning = false;
         let isAuthenticated = false;
         let authToken = null;
+
+        // Batch save system - local working copies
+        let localRestaurants = [];
+        let localProfiles = [];
+        let pendingChanges = {
+            addedRestaurants: [],
+            deletedRestaurants: [],
+            addedProfiles: [],
+            deletedProfiles: []
+        };
+        let hasUnsavedChanges = false;
 
         // Configuration constants
         const CONFIG = {
@@ -711,6 +781,14 @@
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
             initServiceWheel();
+
+            // Warn before leaving with unsaved changes
+            window.addEventListener('beforeunload', (e) => {
+                if (hasUnsavedChanges) {
+                    e.preventDefault();
+                    e.returnValue = ''; // Required for Chrome
+                }
+            });
         }
 
         // Service Type Wheel Functions
@@ -872,6 +950,128 @@
                     {id: 5, name: "Sushi Paradise", foodTypes: ["Japanese", "Asian", "Sushi"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or online", menuLink: "", notes: ""}
                 ];
                 profiles = [{id: 'all', name: 'All Restaurants'}];
+            }
+
+            // Initialize local working copies
+            localRestaurants = JSON.parse(JSON.stringify(restaurants));
+            localProfiles = JSON.parse(JSON.stringify(profiles));
+
+            // Reset pending changes
+            pendingChanges = {
+                addedRestaurants: [],
+                deletedRestaurants: [],
+                addedProfiles: [],
+                deletedProfiles: []
+            };
+            hasUnsavedChanges = false;
+            updateUnsavedChangesUI();
+        }
+
+        /**
+         * Update the unsaved changes UI (banner and save buttons)
+         */
+        function updateUnsavedChangesUI() {
+            const changeCount = pendingChanges.addedRestaurants.length +
+                                pendingChanges.deletedRestaurants.length +
+                                pendingChanges.addedProfiles.length +
+                                pendingChanges.deletedProfiles.length;
+
+            hasUnsavedChanges = changeCount > 0;
+
+            const banner = document.getElementById('unsavedChangesBanner');
+            const saveActions = document.getElementById('saveActions');
+            const countElem = document.getElementById('unsavedCount');
+
+            if (hasUnsavedChanges) {
+                banner.classList.add('active');
+                saveActions.classList.add('active');
+                countElem.textContent = changeCount;
+            } else {
+                banner.classList.remove('active');
+                saveActions.classList.remove('active');
+            }
+        }
+
+        /**
+         * Discard all unsaved changes and reload from server
+         */
+        async function discardChanges() {
+            if (!confirm('Are you sure you want to discard all unsaved changes?')) {
+                return;
+            }
+
+            await loadRestaurants();
+            updateFoodTypeFilters();
+            updateRestaurantList();
+            updateProfileInput();
+            updateProfileList();
+            drawWheel();
+        }
+
+        /**
+         * Save all pending changes to GitHub in a single commit
+         */
+        async function saveAllChanges() {
+            if (!hasUnsavedChanges) {
+                alert('No changes to save');
+                return;
+            }
+
+            if (!confirm(`Save ${pendingChanges.addedRestaurants.length + pendingChanges.deletedRestaurants.length + pendingChanges.addedProfiles.length + pendingChanges.deletedProfiles.length} change(s) to GitHub?`)) {
+                return;
+            }
+
+            try {
+                // Process all deletions first
+                for (const id of pendingChanges.deletedRestaurants) {
+                    await fetch(`/api/restaurants/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                }
+
+                for (const id of pendingChanges.deletedProfiles) {
+                    await fetch(`/api/profiles/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                }
+
+                // Then process additions
+                for (const restaurant of pendingChanges.addedRestaurants) {
+                    await fetch('/api/restaurants', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify(restaurant)
+                    });
+                }
+
+                for (const profile of pendingChanges.addedProfiles) {
+                    await fetch('/api/profiles', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify(profile)
+                    });
+                }
+
+                // Reload from server to get fresh data
+                await loadRestaurants();
+                updateFoodTypeFilters();
+                updateRestaurantList();
+                updateProfileInput();
+                updateProfileList();
+                drawWheel();
+
+                alert('All changes saved successfully!');
+            } catch (error) {
+                console.error('Error saving changes:', error);
+                alert('Failed to save some changes. Please try again.');
             }
         }
 
@@ -1247,8 +1447,8 @@
             document.getElementById('adminBtn').style.display = 'block';
         }
 
-        // Add restaurant
-        async function addRestaurant() {
+        // Add restaurant (to local state)
+        function addRestaurant() {
             const name = document.getElementById('restaurantName').value.trim();
             const orderMethod = document.getElementById('orderMethod').value.trim();
             const menuLink = document.getElementById('menuLink').value.trim();
@@ -1271,7 +1471,7 @@
             }
 
             const newRestaurant = {
-                id: Math.max(...restaurants.map(r => r.id), 0) + 1,
+                id: Math.max(...localRestaurants.map(r => r.id), 0) + 1,
                 name,
                 foodTypes,
                 serviceTypes,
@@ -1283,67 +1483,50 @@
                 notes
             };
 
-            try {
-                const response = await fetch('/api/restaurants', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify(newRestaurant)
-                });
+            // Add to local state and pending changes
+            localRestaurants.push(newRestaurant);
+            pendingChanges.addedRestaurants.push(newRestaurant);
 
-                if (response.ok) {
-                    await loadRestaurants();
-                    updateFoodTypeFilters();
-                    updateRestaurantList();
-                    drawWheel();
+            // Update UI to show local changes
+            restaurants = JSON.parse(JSON.stringify(localRestaurants));
+            updateFoodTypeFilters();
+            updateRestaurantList();
+            updateUnsavedChangesUI();
+            drawWheel();
 
-                    // Clear form
-                    document.getElementById('restaurantName').value = '';
-                    document.getElementById('orderMethod').value = '';
-                    document.getElementById('menuLink').value = '';
-                    document.getElementById('address').value = '';
-                    document.getElementById('phone').value = '';
-                    document.getElementById('notes').value = '';
-                    document.querySelectorAll('.food-type-checkbox').forEach(cb => cb.checked = false);
-                    document.querySelectorAll('.service-type-checkbox').forEach(cb => cb.checked = false);
-                    document.querySelectorAll('.restaurant-profile-checkbox').forEach(cb => cb.checked = false);
-                } else {
-                    alert('Failed to add restaurant');
-                }
-            } catch (error) {
-                console.error('Error adding restaurant:', error);
-                alert('Failed to add restaurant');
-            }
+            // Clear form
+            document.getElementById('restaurantName').value = '';
+            document.getElementById('orderMethod').value = '';
+            document.getElementById('menuLink').value = '';
+            document.getElementById('address').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('notes').value = '';
+            document.querySelectorAll('.food-type-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.service-type-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.restaurant-profile-checkbox').forEach(cb => cb.checked = false);
         }
 
-        // Delete restaurant
-        async function deleteRestaurant(id) {
+        // Delete restaurant (from local state)
+        function deleteRestaurant(id) {
             if (!confirm('Are you sure you want to delete this restaurant?')) {
                 return;
             }
 
-            try {
-                const response = await fetch(`/api/restaurants/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-
-                if (response.ok) {
-                    await loadRestaurants();
-                    updateFoodTypeFilters();
-                    updateRestaurantList();
-                    drawWheel();
-                } else {
-                    alert('Failed to delete restaurant');
-                }
-            } catch (error) {
-                console.error('Error deleting restaurant:', error);
-                alert('Failed to delete restaurant');
+            // Remove from local state
+            const index = localRestaurants.findIndex(r => r.id === id);
+            if (index !== -1) {
+                localRestaurants.splice(index, 1);
             }
+
+            // Track deletion
+            pendingChanges.deletedRestaurants.push(id);
+
+            // Update UI to show local changes
+            restaurants = JSON.parse(JSON.stringify(localRestaurants));
+            updateFoodTypeFilters();
+            updateRestaurantList();
+            updateUnsavedChangesUI();
+            drawWheel();
         }
 
         /**
@@ -1397,7 +1580,7 @@
             });
         }
 
-        async function addProfile() {
+        function addProfile() {
             const name = document.getElementById('profileName').value.trim();
 
             if (!name) {
@@ -1409,7 +1592,7 @@
             const profileId = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
             // Check if profile already exists
-            if (profiles.find(p => p.id === profileId)) {
+            if (localProfiles.find(p => p.id === profileId)) {
                 alert('A profile with this name already exists');
                 return;
             }
@@ -1419,34 +1602,22 @@
                 name: name
             };
 
-            try {
-                const response = await fetch('/api/profiles', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify(newProfile)
-                });
+            // Add to local state and pending changes
+            localProfiles.push(newProfile);
+            pendingChanges.addedProfiles.push(newProfile);
 
-                if (response.ok) {
-                    await loadRestaurants();
-                    updateProfileInput();
-                    updateProfileList();
-                    updateRestaurantProfileCheckboxes();
+            // Update UI to show local changes
+            profiles = JSON.parse(JSON.stringify(localProfiles));
+            updateProfileInput();
+            updateProfileList();
+            updateRestaurantProfileCheckboxes();
+            updateUnsavedChangesUI();
 
-                    // Clear form
-                    document.getElementById('profileName').value = '';
-                } else {
-                    alert('Failed to add profile');
-                }
-            } catch (error) {
-                console.error('Error adding profile:', error);
-                alert('Failed to add profile');
-            }
+            // Clear form
+            document.getElementById('profileName').value = '';
         }
 
-        async function deleteProfile(profileId) {
+        function deleteProfile(profileId) {
             // Prevent deletion of "all" profile
             if (profileId === 'all') {
                 alert('Cannot delete the default "All Restaurants" profile');
@@ -1457,31 +1628,26 @@
                 return;
             }
 
-            try {
-                const response = await fetch(`/api/profiles/${profileId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
+            // Remove from local state
+            const index = localProfiles.findIndex(p => p.id === profileId);
+            if (index !== -1) {
+                localProfiles.splice(index, 1);
+            }
 
-                if (response.ok) {
-                    await loadRestaurants();
-                    updateProfileInput();
-                    updateProfileList();
+            // Track deletion
+            pendingChanges.deletedProfiles.push(profileId);
 
-                    // Reset to "all" if deleted profile was selected
-                    if (selectedProfile === profileId) {
-                        selectedProfile = 'all';
-                        updateProfileInput();
-                        drawWheel();
-                    }
-                } else {
-                    alert('Failed to delete profile');
-                }
-            } catch (error) {
-                console.error('Error deleting profile:', error);
-                alert('Failed to delete profile');
+            // Update UI to show local changes
+            profiles = JSON.parse(JSON.stringify(localProfiles));
+            updateProfileInput();
+            updateProfileList();
+            updateUnsavedChangesUI();
+
+            // Reset to "all" if deleted profile was selected
+            if (selectedProfile === profileId) {
+                selectedProfile = 'all';
+                updateProfileInput();
+                drawWheel();
             }
         }
 
