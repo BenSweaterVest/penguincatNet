@@ -530,8 +530,27 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Food Types (comma separated)</label>
-                        <input type="text" id="foodTypes" placeholder="Italian, Pizza">
+                        <label>Food Types</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" value="Barbecue" class="food-type-checkbox"> Barbecue</label>
+                            <label><input type="checkbox" value="Breakfast & Brunch" class="food-type-checkbox"> Breakfast & Brunch</label>
+                            <label><input type="checkbox" value="Chinese" class="food-type-checkbox"> Chinese</label>
+                            <label><input type="checkbox" value="Diner & Grill" class="food-type-checkbox"> Diner & Grill</label>
+                            <label><input type="checkbox" value="Ethiopian" class="food-type-checkbox"> Ethiopian</label>
+                            <label><input type="checkbox" value="French" class="food-type-checkbox"> French</label>
+                            <label><input type="checkbox" value="German" class="food-type-checkbox"> German</label>
+                            <label><input type="checkbox" value="Indian" class="food-type-checkbox"> Indian</label>
+                            <label><input type="checkbox" value="Italian" class="food-type-checkbox"> Italian</label>
+                            <label><input type="checkbox" value="Japanese" class="food-type-checkbox"> Japanese</label>
+                            <label><input type="checkbox" value="Korean" class="food-type-checkbox"> Korean</label>
+                            <label><input type="checkbox" value="Mediterranean/Middle Eastern" class="food-type-checkbox"> Mediterranean/Middle Eastern</label>
+                            <label><input type="checkbox" value="Mexican" class="food-type-checkbox"> Mexican</label>
+                            <label><input type="checkbox" value="Pizza" class="food-type-checkbox"> Pizza</label>
+                            <label><input type="checkbox" value="Plant-based" class="food-type-checkbox"> Plant-based</label>
+                            <label><input type="checkbox" value="Somali" class="food-type-checkbox"> Somali</label>
+                            <label><input type="checkbox" value="Thai" class="food-type-checkbox"> Thai</label>
+                            <label><input type="checkbox" value="Vietnamese/Cambodian" class="food-type-checkbox"> Vietnamese/Cambodian</label>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -1203,12 +1222,14 @@
         // Add restaurant
         async function addRestaurant() {
             const name = document.getElementById('restaurantName').value.trim();
-            const foodTypesInput = document.getElementById('foodTypes').value.trim();
             const orderMethod = document.getElementById('orderMethod').value.trim();
             const menuLink = document.getElementById('menuLink').value.trim();
             const address = document.getElementById('address').value.trim();
             const phone = document.getElementById('phone').value.trim();
             const notes = document.getElementById('notes').value.trim();
+
+            const foodTypes = Array.from(document.querySelectorAll('.food-type-checkbox:checked'))
+                .map(cb => cb.value);
 
             const serviceTypes = Array.from(document.querySelectorAll('.service-type-checkbox:checked'))
                 .map(cb => cb.value);
@@ -1216,12 +1237,10 @@
             const selectedProfiles = Array.from(document.querySelectorAll('.restaurant-profile-checkbox:checked'))
                 .map(cb => cb.value);
 
-            if (!name || !foodTypesInput || serviceTypes.length === 0) {
-                alert('Please fill in name, food types, and at least one service type');
+            if (!name || foodTypes.length === 0 || serviceTypes.length === 0) {
+                alert('Please fill in name, at least one food type, and at least one service type');
                 return;
             }
-
-            const foodTypes = foodTypesInput.split(',').map(s => s.trim());
 
             const newRestaurant = {
                 id: Math.max(...restaurants.map(r => r.id), 0) + 1,
@@ -1254,12 +1273,12 @@
 
                     // Clear form
                     document.getElementById('restaurantName').value = '';
-                    document.getElementById('foodTypes').value = '';
                     document.getElementById('orderMethod').value = '';
                     document.getElementById('menuLink').value = '';
                     document.getElementById('address').value = '';
                     document.getElementById('phone').value = '';
                     document.getElementById('notes').value = '';
+                    document.querySelectorAll('.food-type-checkbox').forEach(cb => cb.checked = false);
                     document.querySelectorAll('.service-type-checkbox').forEach(cb => cb.checked = false);
                     document.querySelectorAll('.restaurant-profile-checkbox').forEach(cb => cb.checked = false);
                 } else {
