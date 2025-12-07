@@ -3,9 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Spin the wheel to decide where to eat! A fun and easy way to choose restaurants.">
     <title>Restaurant Picker</title>
     <link rel="icon" type="image/png" href="https://thesweatervest.com/wp-content/uploads/2025/02/SweaterVest-Solutions-WIDECROP-300x300.png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="https://thesweatervest.com/wp-content/uploads/2025/02/SweaterVest-Solutions-WIDECROP-300x300.png">
     <style>
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --card-bg: #ffffff;
+            --text-primary: #333;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --input-bg: #fff;
+            --input-border: #ced4da;
+            --wheel-bg: #fff;
+        }
+
+        body.dark-mode {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --card-bg: #0f3460;
+            --text-primary: #e8e8e8;
+            --text-secondary: #b0b0b0;
+            --border-color: #3a506b;
+            --input-bg: #1a1a2e;
+            --input-border: #3a506b;
+            --wheel-bg: #1c2841;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,12 +42,13 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            transition: background 0.3s ease;
         }
 
         .container {
@@ -35,7 +64,7 @@
 
         .main-content {
             flex: 1;
-            background: white;
+            background: var(--card-bg);
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -43,7 +72,7 @@
 
         .sidebar {
             width: 300px;
-            background: white;
+            background: var(--card-bg);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -564,6 +593,23 @@
         </div>
 
         <div class="sidebar">
+            <h3>Settings</h3>
+            <div style="margin-bottom: 20px;">
+                <button id="darkModeToggle" class="btn btn-small" onclick="toggleDarkMode()" style="width: 100%; margin-bottom: 10px;">
+                    <span id="darkModeIcon">🌙</span> <span id="darkModeText">Dark Mode</span>
+                </button>
+
+                <button id="soundToggle" class="btn btn-small" onclick="toggleSound()" style="width: 100%; margin-bottom: 10px;">
+                    <span id="soundIcon">🔊</span> <span id="soundText">Sound On</span>
+                </button>
+
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                    <label for="wheelColorPicker" style="font-size: 0.9em; color: var(--text-secondary);">Wheel Color:</label>
+                    <input type="color" id="wheelColorPicker" value="#667eea" onchange="updateWheelColor()" style="width: 50px; height: 30px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">
+                    <button class="btn btn-small" onclick="resetWheelColor()" style="font-size: 0.8em; padding: 5px 10px;">Reset</button>
+                </div>
+            </div>
+
             <h3>Service Type <button class="btn-icon" onclick="showServiceWheel()" title="Spin to choose service type">🎡</button></h3>
             <div class="profile-section">
                 <select id="serviceTypeSelector" onchange="onServiceTypeChange()">
@@ -703,6 +749,44 @@
                         <button class="btn btn-danger" onclick="discardChanges()">🗑️ Discard Changes</button>
                     </div>
 
+                    <h3 style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">Bulk Edit</h3>
+
+                    <div id="bulkEditSection" style="margin-top: 15px;">
+                        <div style="margin-bottom: 15px;">
+                            <button class="btn btn-small" onclick="toggleBulkSelectAll()" style="margin-bottom: 10px;">Select All / None</button>
+                            <div id="bulkRestaurantList" style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px; padding: 10px; background: var(--input-bg);">
+                                <!-- Will be populated dynamically -->
+                            </div>
+                        </div>
+
+                        <div id="bulkEditActions" style="display: none;">
+                            <div class="form-group">
+                                <label>Bulk Action</label>
+                                <select id="bulkActionType" onchange="updateBulkActionInputs()">
+                                    <option value="">-- Select Action --</option>
+                                    <option value="add-profile">Add to Profile</option>
+                                    <option value="remove-profile">Remove from Profile</option>
+                                    <option value="add-food-type">Add Food Type</option>
+                                    <option value="remove-food-type">Remove Food Type</option>
+                                    <option value="add-service-type">Add Service Type</option>
+                                    <option value="remove-service-type">Remove Service Type</option>
+                                </select>
+                            </div>
+
+                            <div id="bulkActionInputs"></div>
+
+                            <button class="btn btn-success btn-small" onclick="applyBulkEdit()" style="margin-top: 10px;">Apply to Selected</button>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">Data Management</h3>
+
+                    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                        <button class="btn btn-small" onclick="exportData()">📥 Export Data</button>
+                        <button class="btn btn-small" onclick="document.getElementById('importFile').click()">📤 Import Data</button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                    </div>
+
                     <button class="btn btn-secondary btn-small" onclick="logout()" style="margin-top: 20px;">Logout</button>
                 </div>
             </div>
@@ -773,8 +857,184 @@
             }
         }
 
+        /**
+         * Toggle dark mode
+         */
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+
+            // Update button text and icon
+            const icon = document.getElementById('darkModeIcon');
+            const text = document.getElementById('darkModeText');
+            if (isDark) {
+                icon.textContent = '☀️';
+                text.textContent = 'Light Mode';
+            } else {
+                icon.textContent = '🌙';
+                text.textContent = 'Dark Mode';
+            }
+
+            // Redraw wheels to match theme
+            drawWheel();
+            if (document.getElementById('serviceWheelCanvas')) {
+                drawServiceWheel();
+            }
+        }
+
+        /**
+         * Initialize dark mode from localStorage
+         */
+        function initDarkMode() {
+            const darkMode = localStorage.getItem('darkMode');
+            if (darkMode === 'enabled') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('darkModeIcon').textContent = '☀️';
+                document.getElementById('darkModeText').textContent = 'Light Mode';
+            }
+        }
+
+        /**
+         * Sound effects state and functions
+         */
+        let soundEnabled = true;
+        let audioContext = null;
+
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSpinSound() {
+            if (!soundEnabled) return;
+            initAudioContext();
+
+            // Create a quick ascending tone
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        function playWinSound() {
+            if (!soundEnabled) return;
+            initAudioContext();
+
+            // Create a celebratory ascending arpeggio
+            const notes = [261.63, 329.63, 392.00, 523.25]; // C, E, G, C (major chord)
+            notes.forEach((freq, index) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                const startTime = audioContext.currentTime + (index * 0.1);
+                oscillator.frequency.setValueAtTime(freq, startTime);
+
+                gainNode.gain.setValueAtTime(0.2, startTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+
+                oscillator.start(startTime);
+                oscillator.stop(startTime + 0.3);
+            });
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('soundEnabled', soundEnabled ? 'enabled' : 'disabled');
+
+            const icon = document.getElementById('soundIcon');
+            const text = document.getElementById('soundText');
+            if (soundEnabled) {
+                icon.textContent = '🔊';
+                text.textContent = 'Sound On';
+                playWinSound(); // Play test sound
+            } else {
+                icon.textContent = '🔇';
+                text.textContent = 'Sound Off';
+            }
+        }
+
+        function initSound() {
+            const sound = localStorage.getItem('soundEnabled');
+            if (sound === 'disabled') {
+                soundEnabled = false;
+                document.getElementById('soundIcon').textContent = '🔇';
+                document.getElementById('soundText').textContent = 'Sound Off';
+            }
+        }
+
+        /**
+         * Custom wheel color functions
+         */
+        let customWheelColor = null;
+
+        function updateWheelColor() {
+            const picker = document.getElementById('wheelColorPicker');
+            customWheelColor = picker.value;
+            localStorage.setItem('wheelColor', customWheelColor);
+            drawWheel();
+        }
+
+        function resetWheelColor() {
+            customWheelColor = null;
+            localStorage.removeItem('wheelColor');
+            document.getElementById('wheelColorPicker').value = '#667eea';
+            drawWheel();
+        }
+
+        function initWheelColor() {
+            const savedColor = localStorage.getItem('wheelColor');
+            if (savedColor) {
+                customWheelColor = savedColor;
+                document.getElementById('wheelColorPicker').value = savedColor;
+            }
+        }
+
+        function getWheelColors() {
+            if (customWheelColor) {
+                // Generate shades of the custom color
+                return Array.from({ length: 10 }, (_, i) => {
+                    const lightness = 50 + (i % 2 === 0 ? 10 : -10);
+                    return adjustColorLightness(customWheelColor, lightness);
+                });
+            }
+            return CONFIG.WHEEL_COLORS;
+        }
+
+        function adjustColorLightness(hex, lightness) {
+            // Convert hex to RGB
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+
+            // Adjust lightness
+            const factor = lightness / 50;
+            const newR = Math.min(255, Math.max(0, Math.round(r * factor)));
+            const newG = Math.min(255, Math.max(0, Math.round(g * factor)));
+            const newB = Math.min(255, Math.max(0, Math.round(b * factor)));
+
+            // Convert back to hex
+            return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+        }
+
         // Initialize
         async function init() {
+            initDarkMode(); // Load dark mode preference first
+            initSound(); // Load sound preference
+            initWheelColor(); // Load wheel color preference
             await loadRestaurants();
             updateProfileInput();
             updateFoodTypeFilters();
@@ -1076,6 +1336,206 @@
         }
 
         /**
+         * Bulk Edit Functions
+         */
+        let selectedBulkRestaurants = new Set();
+
+        function updateBulkRestaurantList() {
+            const container = document.getElementById('bulkRestaurantList');
+            if (!container) return;
+
+            if (localRestaurants.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary); margin: 0;">No restaurants available</p>';
+                return;
+            }
+
+            let html = '';
+            localRestaurants.forEach(r => {
+                const checked = selectedBulkRestaurants.has(r.id) ? 'checked' : '';
+                html += `
+                    <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+                        <input type="checkbox" value="${r.id}" onchange="toggleBulkRestaurant(${r.id})" ${checked}>
+                        <span style="margin-left: 8px;">${sanitizeHTML(r.name)}</span>
+                    </label>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function toggleBulkRestaurant(id) {
+            if (selectedBulkRestaurants.has(id)) {
+                selectedBulkRestaurants.delete(id);
+            } else {
+                selectedBulkRestaurants.add(id);
+            }
+
+            const actionsDiv = document.getElementById('bulkEditActions');
+            if (selectedBulkRestaurants.size > 0) {
+                actionsDiv.style.display = 'block';
+            } else {
+                actionsDiv.style.display = 'none';
+            }
+        }
+
+        function toggleBulkSelectAll() {
+            if (selectedBulkRestaurants.size === localRestaurants.length) {
+                selectedBulkRestaurants.clear();
+            } else {
+                localRestaurants.forEach(r => selectedBulkRestaurants.add(r.id));
+            }
+            updateBulkRestaurantList();
+
+            const actionsDiv = document.getElementById('bulkEditActions');
+            if (selectedBulkRestaurants.size > 0) {
+                actionsDiv.style.display = 'block';
+            } else {
+                actionsDiv.style.display = 'none';
+            }
+        }
+
+        function updateBulkActionInputs() {
+            const actionType = document.getElementById('bulkActionType').value;
+            const inputsDiv = document.getElementById('bulkActionInputs');
+
+            if (!actionType) {
+                inputsDiv.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="form-group">';
+
+            if (actionType === 'add-profile' || actionType === 'remove-profile') {
+                html += `
+                    <label>Select Profile</label>
+                    <select id="bulkActionValue">
+                        ${localProfiles.filter(p => p.id !== 'all').map(p =>
+                            `<option value="${p.id}">${sanitizeHTML(p.name)}</option>`
+                        ).join('')}
+                    </select>
+                `;
+            } else if (actionType === 'add-food-type' || actionType === 'remove-food-type') {
+                const foodTypes = ['Barbecue', 'Breakfast & Brunch', 'Burgers', 'Chinese', 'Comfort Food',
+                                   'Desserts & Bakeries', 'Fast Food', 'Indian', 'Italian', 'Japanese',
+                                   'Mediterranean/Middle Eastern', 'Mexican', 'Pizza', 'Sandwiches & Delis',
+                                   'Seafood', 'Thai', 'Vegan/Vegetarian', 'Vietnamese/Cambodian'];
+                html += `
+                    <label>Select Food Type</label>
+                    <select id="bulkActionValue">
+                        ${foodTypes.map(ft => `<option value="${ft}">${ft}</option>`).join('')}
+                    </select>
+                `;
+            } else if (actionType === 'add-service-type' || actionType === 'remove-service-type') {
+                html += `
+                    <label>Select Service Type</label>
+                    <select id="bulkActionValue">
+                        <option value="takeout">Takeout</option>
+                        <option value="delivery">Delivery</option>
+                        <option value="dine-in">Dine In</option>
+                        <option value="at-home">At Home</option>
+                    </select>
+                `;
+            }
+
+            html += '</div>';
+            inputsDiv.innerHTML = html;
+        }
+
+        function applyBulkEdit() {
+            const actionType = document.getElementById('bulkActionType').value;
+            const actionValue = document.getElementById('bulkActionValue')?.value;
+
+            if (!actionType) {
+                alert('Please select a bulk action');
+                return;
+            }
+
+            if (!actionValue) {
+                alert('Please select a value for the action');
+                return;
+            }
+
+            let changedCount = 0;
+
+            selectedBulkRestaurants.forEach(id => {
+                const restaurant = localRestaurants.find(r => r.id === id);
+                if (!restaurant) return;
+
+                let changed = false;
+
+                if (actionType === 'add-profile') {
+                    if (!restaurant.profiles) restaurant.profiles = [];
+                    if (!restaurant.profiles.includes(actionValue)) {
+                        restaurant.profiles.push(actionValue);
+                        changed = true;
+                    }
+                } else if (actionType === 'remove-profile') {
+                    if (restaurant.profiles) {
+                        const index = restaurant.profiles.indexOf(actionValue);
+                        if (index > -1) {
+                            restaurant.profiles.splice(index, 1);
+                            changed = true;
+                        }
+                    }
+                } else if (actionType === 'add-food-type') {
+                    if (!restaurant.foodTypes) restaurant.foodTypes = [];
+                    if (!restaurant.foodTypes.includes(actionValue)) {
+                        restaurant.foodTypes.push(actionValue);
+                        changed = true;
+                    }
+                } else if (actionType === 'remove-food-type') {
+                    if (restaurant.foodTypes) {
+                        const index = restaurant.foodTypes.indexOf(actionValue);
+                        if (index > -1) {
+                            restaurant.foodTypes.splice(index, 1);
+                            changed = true;
+                        }
+                    }
+                } else if (actionType === 'add-service-type') {
+                    if (!restaurant.serviceTypes) restaurant.serviceTypes = [];
+                    if (!restaurant.serviceTypes.includes(actionValue)) {
+                        restaurant.serviceTypes.push(actionValue);
+                        changed = true;
+                    }
+                } else if (actionType === 'remove-service-type') {
+                    if (restaurant.serviceTypes) {
+                        const index = restaurant.serviceTypes.indexOf(actionValue);
+                        if (index > -1) {
+                            restaurant.serviceTypes.splice(index, 1);
+                            changed = true;
+                        }
+                    }
+                }
+
+                if (changed) {
+                    changedCount++;
+                    // Mark as changed if not already in pending
+                    if (!pendingChanges.addedRestaurants.find(r => r.id === id)) {
+                        pendingChanges.addedRestaurants.push(restaurant);
+                    }
+                }
+            });
+
+            if (changedCount > 0) {
+                restaurants = JSON.parse(JSON.stringify(localRestaurants));
+                updateFoodTypeFilters();
+                updateRestaurantList();
+                updateBulkRestaurantList();
+                updateUnsavedChangesUI();
+                drawWheel();
+                alert(`Bulk edit applied to ${changedCount} restaurant(s). Remember to save changes!`);
+            } else {
+                alert('No changes were made. The selected restaurants may already have this attribute.');
+            }
+
+            // Clear selections and reset
+            selectedBulkRestaurants.clear();
+            updateBulkRestaurantList();
+            document.getElementById('bulkActionType').value = '';
+            document.getElementById('bulkActionInputs').innerHTML = '';
+            document.getElementById('bulkEditActions').style.display = 'none';
+        }
+
+        /**
          * Handle service type selector change
          * Updates selected service type and redraws wheel with filtered restaurants
          */
@@ -1271,6 +1731,7 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            const wheelColors = getWheelColors();
             filteredRestaurants.forEach((restaurant, i) => {
                 const startAngle = i * anglePerSegment + currentRotation;
                 const endAngle = (i + 1) * anglePerSegment + currentRotation;
@@ -1280,7 +1741,7 @@
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, startAngle, endAngle);
                 ctx.closePath();
-                ctx.fillStyle = colors[i % colors.length];
+                ctx.fillStyle = wheelColors[i % wheelColors.length];
                 ctx.fill();
                 ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 3;
@@ -1316,6 +1777,8 @@
                 alert('No restaurants available with current filters!');
                 return;
             }
+
+            playSpinSound(); // Play spin sound effect
 
             isSpinning = true;
             document.getElementById('spinBtn').disabled = true;
@@ -1355,6 +1818,65 @@
         }
 
         /**
+         * Trigger confetti animation
+         */
+        function triggerConfetti() {
+            const duration = 3000;
+            const animationEnd = Date.now() + duration;
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7DC6F', '#98D8C8', '#BB8FCE'];
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const confettiInterval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    clearInterval(confettiInterval);
+                    return;
+                }
+
+                const particleCount = 3;
+
+                for (let i = 0; i < particleCount; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.top = '-10px';
+                    confetti.style.opacity = '1';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    confetti.style.zIndex = '10000';
+                    confetti.style.pointerEvents = 'none';
+                    confetti.style.borderRadius = '2px';
+
+                    document.body.appendChild(confetti);
+
+                    const duration = randomInRange(1000, 3000);
+                    const xMovement = randomInRange(-100, 100);
+                    const rotation = randomInRange(0, 720);
+
+                    confetti.animate([
+                        {
+                            transform: `translateY(0) translateX(0) rotate(0deg)`,
+                            opacity: 1
+                        },
+                        {
+                            transform: `translateY(${window.innerHeight}px) translateX(${xMovement}px) rotate(${rotation}deg)`,
+                            opacity: 0
+                        }
+                    ], {
+                        duration: duration,
+                        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                    }).onfinish = () => confetti.remove();
+                }
+            }, 50);
+        }
+
+        /**
          * Display selected restaurant result with sanitized content
          * @param {Array} filteredRestaurants - Array of filtered restaurant objects
          * @param {number} numSegments - Number of wheel segments
@@ -1366,6 +1888,10 @@
             const selectedAngle = (2 * Math.PI - normalizedRotation + pointerAngle) % (2 * Math.PI);
             const selectedIndex = Math.floor(selectedAngle / anglePerSegment) % numSegments;
             const winner = filteredRestaurants[selectedIndex];
+
+            // Trigger confetti animation and play win sound
+            triggerConfetti();
+            playWinSound();
 
             const resultDiv = document.getElementById('result');
 
@@ -1529,6 +2055,33 @@
             drawWheel();
         }
 
+        // Duplicate restaurant (creates copy in local state)
+        function duplicateRestaurant(id) {
+            const original = localRestaurants.find(r => r.id === id);
+            if (!original) return;
+
+            const duplicate = {
+                ...original,
+                id: Math.max(...localRestaurants.map(r => r.id), 0) + 1,
+                name: `${original.name} (Copy)`,
+                // Deep copy arrays
+                foodTypes: [...original.foodTypes],
+                serviceTypes: [...original.serviceTypes],
+                profiles: [...(original.profiles || [])]
+            };
+
+            // Add to local state and pending changes
+            localRestaurants.push(duplicate);
+            pendingChanges.addedRestaurants.push(duplicate);
+
+            // Update UI
+            restaurants = JSON.parse(JSON.stringify(localRestaurants));
+            updateFoodTypeFilters();
+            updateRestaurantList();
+            updateUnsavedChangesUI();
+            drawWheel();
+        }
+
         /**
          * Update restaurant list in admin panel with sanitized content
          */
@@ -1548,13 +2101,19 @@
                         <div class="restaurant-item-types">${r.foodTypes.map(ft => sanitizeHTML(ft)).join(', ')} • ${r.serviceTypes.map(st => sanitizeHTML(st)).join(', ')}</div>
                         <div class="restaurant-item-types" style="font-size: 0.8em; margin-top: 3px;">Profiles: ${profileTags}</div>
                     </div>
-                    <button class="btn btn-danger btn-small" onclick="deleteRestaurant(${r.id})">Delete</button>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn btn-small" onclick="duplicateRestaurant(${r.id})" style="background: #6c757d;">📋 Duplicate</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteRestaurant(${r.id})">Delete</button>
+                    </div>
                 `;
                 container.appendChild(item);
             });
 
             // Update profile checkboxes in restaurant form
             updateRestaurantProfileCheckboxes();
+
+            // Update bulk edit restaurant list
+            updateBulkRestaurantList();
         }
 
         // Populate profile checkboxes in restaurant form
@@ -1679,6 +2238,85 @@
                 `;
                 container.appendChild(item);
             });
+        }
+
+        /**
+         * Export current data as JSON file
+         */
+        function exportData() {
+            const data = {
+                profiles: profiles,
+                restaurants: restaurants
+            };
+
+            const jsonString = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `restaurants-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * Import data from JSON file
+         */
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    // Validate data structure
+                    if (!data.profiles || !data.restaurants) {
+                        alert('Invalid JSON format. Must contain "profiles" and "restaurants" arrays.');
+                        return;
+                    }
+
+                    if (!confirm(`Import ${data.restaurants.length} restaurants and ${data.profiles.length} profiles? This will replace your current local data.`)) {
+                        return;
+                    }
+
+                    // Update local state
+                    localRestaurants = data.restaurants;
+                    localProfiles = data.profiles;
+                    restaurants = JSON.parse(JSON.stringify(localRestaurants));
+                    profiles = JSON.parse(JSON.stringify(localProfiles));
+
+                    // Clear pending changes since we're starting fresh
+                    pendingChanges = {
+                        addedRestaurants: [],
+                        deletedRestaurants: [],
+                        addedProfiles: [],
+                        deletedProfiles: []
+                    };
+                    hasUnsavedChanges = false;
+
+                    // Update UI
+                    updateFoodTypeFilters();
+                    updateRestaurantList();
+                    updateProfileInput();
+                    updateProfileList();
+                    updateUnsavedChangesUI();
+                    drawWheel();
+
+                    alert('Data imported successfully! Remember to click "Save All Changes" to save to GitHub.');
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('Failed to import data. Please check the file format.');
+                }
+            };
+            reader.readAsText(file);
+
+            // Reset file input
+            event.target.value = '';
         }
 
         // Start the app
