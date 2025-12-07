@@ -11,25 +11,6 @@
   ],
   "restaurants": [
     {
-      "id": 1,
-      "name": "The Italian Corner",
-      "foodTypes": [
-        "Italian",
-        "Pizza"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "delivery",
-        "dine-in"
-      ],
-      "profiles": [],
-      "orderMethod": "Call (555) 123-4567 or DoorDash",
-      "menuLink": "https://example.com/menu",
-      "address": "123 Main Street",
-      "phone": "(555) 123-4567",
-      "notes": "Great wine selection, reservations recommended on weekends"
-    },
-    {
       "id": 2,
       "name": "Spice of India",
       "foodTypes": [
