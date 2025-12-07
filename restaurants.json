@@ -5,10 +5,6 @@
       "name": "All Restaurants"
     },
     {
-      "id": "date-night",
-      "name": "Date Night"
-    },
-    {
       "id": "quick-lunch",
       "name": "Quick Lunch"
     }
@@ -17,9 +13,16 @@
     {
       "id": 1,
       "name": "The Italian Corner",
-      "foodTypes": ["Italian", "Pizza"],
-      "serviceTypes": ["takeout", "delivery", "dine-in"],
-      "profiles": ["date-night"],
+      "foodTypes": [
+        "Italian",
+        "Pizza"
+      ],
+      "serviceTypes": [
+        "takeout",
+        "delivery",
+        "dine-in"
+      ],
+      "profiles": [],
       "orderMethod": "Call (555) 123-4567 or DoorDash",
       "menuLink": "https://example.com/menu",
       "address": "123 Main Street",
@@ -29,9 +32,15 @@
     {
       "id": 2,
       "name": "Spice of India",
-      "foodTypes": ["Indian"],
-      "serviceTypes": ["takeout", "delivery", "dine-in"],
-      "profiles": ["date-night"],
+      "foodTypes": [
+        "Indian"
+      ],
+      "serviceTypes": [
+        "takeout",
+        "delivery",
+        "dine-in"
+      ],
+      "profiles": [],
       "orderMethod": "Grubhub or phone",
       "menuLink": "https://example.com/spiceofindia",
       "address": "456 Oak Avenue",
@@ -41,9 +50,16 @@
     {
       "id": 3,
       "name": "Taco Fiesta",
-      "foodTypes": ["Mexican"],
-      "serviceTypes": ["takeout", "dine-in"],
-      "profiles": ["quick-lunch"],
+      "foodTypes": [
+        "Mexican"
+      ],
+      "serviceTypes": [
+        "takeout",
+        "dine-in"
+      ],
+      "profiles": [
+        "quick-lunch"
+      ],
       "orderMethod": "Call ahead for takeout",
       "menuLink": "https://example.com/tacofiesta",
       "address": "789 Pine Road",
@@ -53,9 +69,16 @@
     {
       "id": 4,
       "name": "Bangkok Street Kitchen",
-      "foodTypes": ["Thai"],
-      "serviceTypes": ["takeout", "delivery"],
-      "profiles": ["quick-lunch"],
+      "foodTypes": [
+        "Thai"
+      ],
+      "serviceTypes": [
+        "takeout",
+        "delivery"
+      ],
+      "profiles": [
+        "quick-lunch"
+      ],
       "orderMethod": "Uber Eats, DoorDash, or call",
       "menuLink": "https://example.com/bangkokstreet",
       "address": "321 Elm Street",
@@ -65,9 +88,15 @@
     {
       "id": 5,
       "name": "Sakura Sushi",
-      "foodTypes": ["Japanese"],
-      "serviceTypes": ["takeout", "delivery", "dine-in"],
-      "profiles": ["date-night"],
+      "foodTypes": [
+        "Japanese"
+      ],
+      "serviceTypes": [
+        "takeout",
+        "delivery",
+        "dine-in"
+      ],
+      "profiles": [],
       "orderMethod": "Online at sakura-sushi.example.com or phone",
       "menuLink": "https://example.com/sakura",
       "address": "654 Maple Drive",
@@ -77,8 +106,14 @@
     {
       "id": 6,
       "name": "Mediterranean Grill",
-      "foodTypes": ["Mediterranean/Middle Eastern"],
-      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "foodTypes": [
+        "Mediterranean/Middle Eastern"
+      ],
+      "serviceTypes": [
+        "takeout",
+        "delivery",
+        "dine-in"
+      ],
       "profiles": [],
       "orderMethod": "Call or walk-in",
       "menuLink": "https://example.com/medgrill",
@@ -89,9 +124,13 @@
     {
       "id": 7,
       "name": "Homemade Pasta Night",
-      "foodTypes": ["Italian"],
-      "serviceTypes": ["at-home"],
-      "profiles": ["date-night"],
+      "foodTypes": [
+        "Italian"
+      ],
+      "serviceTypes": [
+        "at-home"
+      ],
+      "profiles": [],
       "orderMethod": "Cook at home",
       "menuLink": "",
       "address": "",
@@ -101,9 +140,15 @@
     {
       "id": 8,
       "name": "Stir-Fry",
-      "foodTypes": ["Chinese"],
-      "serviceTypes": ["at-home"],
-      "profiles": ["quick-lunch"],
+      "foodTypes": [
+        "Chinese"
+      ],
+      "serviceTypes": [
+        "at-home"
+      ],
+      "profiles": [
+        "quick-lunch"
+      ],
       "orderMethod": "Cook at home",
       "menuLink": "",
       "address": "",
