@@ -6,6 +6,30 @@
     <title>Restaurant Picker</title>
     <link rel="icon" type="image/png" href="https://thesweatervest.com/wp-content/uploads/2025/02/SweaterVest-Solutions-WIDECROP-300x300.png">
     <style>
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --card-bg: #ffffff;
+            --text-primary: #333;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --input-bg: #fff;
+            --input-border: #ced4da;
+            --wheel-bg: #fff;
+        }
+
+        body.dark-mode {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --card-bg: #0f3460;
+            --text-primary: #e8e8e8;
+            --text-secondary: #b0b0b0;
+            --border-color: #3a506b;
+            --input-bg: #1a1a2e;
+            --input-border: #3a506b;
+            --wheel-bg: #1c2841;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,12 +38,13 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            transition: background 0.3s ease;
         }
 
         .container {
@@ -35,7 +60,7 @@
 
         .main-content {
             flex: 1;
-            background: white;
+            background: var(--card-bg);
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -43,7 +68,7 @@
 
         .sidebar {
             width: 300px;
-            background: white;
+            background: var(--card-bg);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -564,6 +589,12 @@
         </div>
 
         <div class="sidebar">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button id="darkModeToggle" class="btn btn-small" onclick="toggleDarkMode()" style="width: 100%;">
+                    <span id="darkModeIcon">🌙</span> <span id="darkModeText">Dark Mode</span>
+                </button>
+            </div>
+
             <h3>Service Type <button class="btn-icon" onclick="showServiceWheel()" title="Spin to choose service type">🎡</button></h3>
             <div class="profile-section">
                 <select id="serviceTypeSelector" onchange="onServiceTypeChange()">
@@ -703,6 +734,14 @@
                         <button class="btn btn-danger" onclick="discardChanges()">🗑️ Discard Changes</button>
                     </div>
 
+                    <h3 style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">Data Management</h3>
+
+                    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                        <button class="btn btn-small" onclick="exportData()">📥 Export Data</button>
+                        <button class="btn btn-small" onclick="document.getElementById('importFile').click()">📤 Import Data</button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                    </div>
+
                     <button class="btn btn-secondary btn-small" onclick="logout()" style="margin-top: 20px;">Logout</button>
                 </div>
             </div>
@@ -773,8 +812,46 @@
             }
         }
 
+        /**
+         * Toggle dark mode
+         */
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+
+            // Update button text and icon
+            const icon = document.getElementById('darkModeIcon');
+            const text = document.getElementById('darkModeText');
+            if (isDark) {
+                icon.textContent = '☀️';
+                text.textContent = 'Light Mode';
+            } else {
+                icon.textContent = '🌙';
+                text.textContent = 'Dark Mode';
+            }
+
+            // Redraw wheels to match theme
+            drawWheel();
+            if (document.getElementById('serviceWheelCanvas')) {
+                drawServiceWheel();
+            }
+        }
+
+        /**
+         * Initialize dark mode from localStorage
+         */
+        function initDarkMode() {
+            const darkMode = localStorage.getItem('darkMode');
+            if (darkMode === 'enabled') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('darkModeIcon').textContent = '☀️';
+                document.getElementById('darkModeText').textContent = 'Light Mode';
+            }
+        }
+
         // Initialize
         async function init() {
+            initDarkMode(); // Load dark mode preference first
             await loadRestaurants();
             updateProfileInput();
             updateFoodTypeFilters();
@@ -1355,6 +1432,65 @@
         }
 
         /**
+         * Trigger confetti animation
+         */
+        function triggerConfetti() {
+            const duration = 3000;
+            const animationEnd = Date.now() + duration;
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7DC6F', '#98D8C8', '#BB8FCE'];
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const confettiInterval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    clearInterval(confettiInterval);
+                    return;
+                }
+
+                const particleCount = 3;
+
+                for (let i = 0; i < particleCount; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.top = '-10px';
+                    confetti.style.opacity = '1';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    confetti.style.zIndex = '10000';
+                    confetti.style.pointerEvents = 'none';
+                    confetti.style.borderRadius = '2px';
+
+                    document.body.appendChild(confetti);
+
+                    const duration = randomInRange(1000, 3000);
+                    const xMovement = randomInRange(-100, 100);
+                    const rotation = randomInRange(0, 720);
+
+                    confetti.animate([
+                        {
+                            transform: `translateY(0) translateX(0) rotate(0deg)`,
+                            opacity: 1
+                        },
+                        {
+                            transform: `translateY(${window.innerHeight}px) translateX(${xMovement}px) rotate(${rotation}deg)`,
+                            opacity: 0
+                        }
+                    ], {
+                        duration: duration,
+                        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                    }).onfinish = () => confetti.remove();
+                }
+            }, 50);
+        }
+
+        /**
          * Display selected restaurant result with sanitized content
          * @param {Array} filteredRestaurants - Array of filtered restaurant objects
          * @param {number} numSegments - Number of wheel segments
@@ -1366,6 +1502,9 @@
             const selectedAngle = (2 * Math.PI - normalizedRotation + pointerAngle) % (2 * Math.PI);
             const selectedIndex = Math.floor(selectedAngle / anglePerSegment) % numSegments;
             const winner = filteredRestaurants[selectedIndex];
+
+            // Trigger confetti animation
+            triggerConfetti();
 
             const resultDiv = document.getElementById('result');
 
@@ -1529,6 +1668,33 @@
             drawWheel();
         }
 
+        // Duplicate restaurant (creates copy in local state)
+        function duplicateRestaurant(id) {
+            const original = localRestaurants.find(r => r.id === id);
+            if (!original) return;
+
+            const duplicate = {
+                ...original,
+                id: Math.max(...localRestaurants.map(r => r.id), 0) + 1,
+                name: `${original.name} (Copy)`,
+                // Deep copy arrays
+                foodTypes: [...original.foodTypes],
+                serviceTypes: [...original.serviceTypes],
+                profiles: [...(original.profiles || [])]
+            };
+
+            // Add to local state and pending changes
+            localRestaurants.push(duplicate);
+            pendingChanges.addedRestaurants.push(duplicate);
+
+            // Update UI
+            restaurants = JSON.parse(JSON.stringify(localRestaurants));
+            updateFoodTypeFilters();
+            updateRestaurantList();
+            updateUnsavedChangesUI();
+            drawWheel();
+        }
+
         /**
          * Update restaurant list in admin panel with sanitized content
          */
@@ -1548,7 +1714,10 @@
                         <div class="restaurant-item-types">${r.foodTypes.map(ft => sanitizeHTML(ft)).join(', ')} • ${r.serviceTypes.map(st => sanitizeHTML(st)).join(', ')}</div>
                         <div class="restaurant-item-types" style="font-size: 0.8em; margin-top: 3px;">Profiles: ${profileTags}</div>
                     </div>
-                    <button class="btn btn-danger btn-small" onclick="deleteRestaurant(${r.id})">Delete</button>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn btn-small" onclick="duplicateRestaurant(${r.id})" style="background: #6c757d;">📋 Duplicate</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteRestaurant(${r.id})">Delete</button>
+                    </div>
                 `;
                 container.appendChild(item);
             });
@@ -1679,6 +1848,85 @@
                 `;
                 container.appendChild(item);
             });
+        }
+
+        /**
+         * Export current data as JSON file
+         */
+        function exportData() {
+            const data = {
+                profiles: profiles,
+                restaurants: restaurants
+            };
+
+            const jsonString = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `restaurants-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * Import data from JSON file
+         */
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    // Validate data structure
+                    if (!data.profiles || !data.restaurants) {
+                        alert('Invalid JSON format. Must contain "profiles" and "restaurants" arrays.');
+                        return;
+                    }
+
+                    if (!confirm(`Import ${data.restaurants.length} restaurants and ${data.profiles.length} profiles? This will replace your current local data.`)) {
+                        return;
+                    }
+
+                    // Update local state
+                    localRestaurants = data.restaurants;
+                    localProfiles = data.profiles;
+                    restaurants = JSON.parse(JSON.stringify(localRestaurants));
+                    profiles = JSON.parse(JSON.stringify(localProfiles));
+
+                    // Clear pending changes since we're starting fresh
+                    pendingChanges = {
+                        addedRestaurants: [],
+                        deletedRestaurants: [],
+                        addedProfiles: [],
+                        deletedProfiles: []
+                    };
+                    hasUnsavedChanges = false;
+
+                    // Update UI
+                    updateFoodTypeFilters();
+                    updateRestaurantList();
+                    updateProfileInput();
+                    updateProfileList();
+                    updateUnsavedChangesUI();
+                    drawWheel();
+
+                    alert('Data imported successfully! Remember to click "Save All Changes" to save to GitHub.');
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('Failed to import data. Please check the file format.');
+                }
+            };
+            reader.readAsText(file);
+
+            // Reset file input
+            event.target.value = '';
         }
 
         // Start the app
