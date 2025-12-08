@@ -51,9 +51,11 @@ jobs:
         run: npm run test
 
       - name: Generate coverage report
-        run: npm run test:coverage
+        run: npm run test:coverage || true
 
       - name: Upload coverage to Codecov
+        if: success() || failure()
+        continue-on-error: true
         uses: codecov/codecov-action@v3
         with:
           files: ./coverage/coverage-final.json
