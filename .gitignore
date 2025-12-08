@@ -4,7 +4,6 @@
 
 # Node modules (if using npm)
 node_modules/
-package-lock.json
 
 # Test coverage
 coverage/

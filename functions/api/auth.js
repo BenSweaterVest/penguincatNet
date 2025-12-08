@@ -38,10 +38,13 @@ export async function onRequestPost(context) {
       // Generate session token with timestamp for expiration
       const token = btoa(`${password}:${Date.now()}`);
 
-      return successResponse({
-        authenticated: true,
-        token: token
-      }, env);
+      return successResponse(
+        {
+          authenticated: true,
+          token: token
+        },
+        env
+      );
     } else {
       return errorResponse('Invalid password', 401, env);
     }

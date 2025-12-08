@@ -44,15 +44,18 @@ export async function onRequestGet(context) {
   try {
     const { data } = await fetchFromGitHub(env);
 
-    return new Response(JSON.stringify({
-      profiles: data.profiles || []
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        ...getCorsHeaders(env),
-        'Cache-Control': 'public, max-age=60'
+    return new Response(
+      JSON.stringify({
+        profiles: data.profiles || []
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...getCorsHeaders(env),
+          'Cache-Control': 'public, max-age=60'
+        }
       }
-    });
+    );
   } catch (error) {
     console.error('Error fetching profiles:', error);
     return errorResponse('Failed to fetch profiles', 500, env);
@@ -83,7 +86,11 @@ export async function onRequestPost(context) {
 
     // Validate profile ID format (lowercase, hyphenated)
     if (!validateProfileId(newProfile.id)) {
-      return errorResponse('Profile ID must contain only lowercase letters, numbers, and hyphens', 400, env);
+      return errorResponse(
+        'Profile ID must contain only lowercase letters, numbers, and hyphens',
+        400,
+        env
+      );
     }
 
     // Check for reserved profile IDs
@@ -97,11 +104,11 @@ export async function onRequestPost(context) {
 
     // Ensure profiles array exists
     if (!data.profiles) {
-      data.profiles = [{id: 'all', name: 'All Restaurants'}];
+      data.profiles = [{ id: 'all', name: 'All Restaurants' }];
     }
 
     // Check if profile with this ID already exists
-    if (data.profiles.find(p => p.id === newProfile.id)) {
+    if (data.profiles.find((p) => p.id === newProfile.id)) {
       return errorResponse('Profile with this ID already exists', 400, env);
     }
 
@@ -109,17 +116,15 @@ export async function onRequestPost(context) {
     data.profiles.push(newProfile);
 
     // Commit changes to repository
-    await updateGitHub(
-      env,
-      data,
-      sha,
-      `Add profile: ${newProfile.name}`
-    );
+    await updateGitHub(env, data, sha, `Add profile: ${newProfile.name}`);
 
-    return successResponse({
-      success: true,
-      profile: newProfile
-    }, env);
+    return successResponse(
+      {
+        success: true,
+        profile: newProfile
+      },
+      env
+    );
   } catch (error) {
     console.error('Error adding profile:', error);
     return errorResponse(`Failed to add profile: ${error.message}`, 500, env);
@@ -157,7 +162,7 @@ export async function onRequestPut(context) {
     const { data, sha } = await fetchFromGitHub(env);
 
     // Find profile by ID
-    const index = data.profiles.findIndex(p => p.id === updatedProfile.id);
+    const index = data.profiles.findIndex((p) => p.id === updatedProfile.id);
 
     if (index === -1) {
       return errorResponse('Profile not found', 404, env);
@@ -167,17 +172,15 @@ export async function onRequestPut(context) {
     data.profiles[index].name = updatedProfile.name;
 
     // Commit changes to repository
-    await updateGitHub(
-      env,
-      data,
-      sha,
-      `Update profile: ${updatedProfile.name}`
-    );
+    await updateGitHub(env, data, sha, `Update profile: ${updatedProfile.name}`);
 
-    return successResponse({
-      success: true,
-      profile: data.profiles[index]
-    }, env);
+    return successResponse(
+      {
+        success: true,
+        profile: data.profiles[index]
+      },
+      env
+    );
   } catch (error) {
     console.error('Error updating profile:', error);
     return errorResponse(`Failed to update profile: ${error.message}`, 500, env);

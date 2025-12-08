@@ -67,8 +67,8 @@ export async function fetchFromGitHub(env) {
 
   const response = await fetch(url, {
     headers: {
-      'Authorization': `token ${env.GITHUB_TOKEN}`,
-      'Accept': 'application/vnd.github.v3+json',
+      Authorization: `token ${env.GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github.v3+json',
       'User-Agent': 'Restaurant-Picker-App'
     }
   });
@@ -105,8 +105,8 @@ export async function updateGitHub(env, content, sha, message) {
   const response = await fetch(url, {
     method: 'PUT',
     headers: {
-      'Authorization': `token ${env.GITHUB_TOKEN}`,
-      'Accept': 'application/vnd.github.v3+json',
+      Authorization: `token ${env.GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github.v3+json',
       'Content-Type': 'application/json',
       'User-Agent': 'Restaurant-Picker-App'
     },
@@ -164,15 +164,18 @@ export function getCorsHeaders(env) {
  * return errorResponse('Restaurant not found', 404, env);
  */
 export function errorResponse(message, status = 500, env = {}) {
-  return new Response(JSON.stringify({
-    error: message
-  }), {
-    status: status,
-    headers: {
-      'Content-Type': 'application/json',
-      ...getCorsHeaders(env)
+  return new Response(
+    JSON.stringify({
+      error: message
+    }),
+    {
+      status: status,
+      headers: {
+        'Content-Type': 'application/json',
+        ...getCorsHeaders(env)
+      }
     }
-  });
+  );
 }
 
 /**
@@ -208,9 +211,9 @@ export function successResponse(data, env = {}) {
  * };
  */
 export function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -229,7 +232,7 @@ export function generateUUID() {
  */
 export function validateServiceTypes(serviceTypes) {
   const validServiceTypes = ['takeout', 'delivery', 'dine-in', 'at-home'];
-  const invalidTypes = serviceTypes.filter(st => !validServiceTypes.includes(st));
+  const invalidTypes = serviceTypes.filter((st) => !validServiceTypes.includes(st));
 
   return {
     valid: invalidTypes.length === 0,
