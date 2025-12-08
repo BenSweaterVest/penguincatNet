@@ -140,7 +140,7 @@ describe('Shared Utilities', () => {
       const result = validateRestaurantData(restaurant);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('food type'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('food type'))).toBe(true);
     });
 
     it('should require at least one service type', () => {
@@ -153,7 +153,7 @@ describe('Shared Utilities', () => {
       const result = validateRestaurantData(restaurant);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('service type'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('service type'))).toBe(true);
     });
 
     it('should validate service types format', () => {
@@ -166,7 +166,7 @@ describe('Shared Utilities', () => {
       const result = validateRestaurantData(restaurant);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Invalid service types'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Invalid service types'))).toBe(true);
     });
 
     it('should validate profiles is an array', () => {
@@ -180,7 +180,7 @@ describe('Shared Utilities', () => {
       const result = validateRestaurantData(restaurant);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Profiles must be an array'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Profiles must be an array'))).toBe(true);
     });
 
     it('should validate dietary restrictions is an array', () => {
@@ -194,7 +194,9 @@ describe('Shared Utilities', () => {
       const result = validateRestaurantData(restaurant);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('Dietary restrictions must be an array'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('Dietary restrictions must be an array'))).toBe(
+        true
+      );
     });
   });
 });

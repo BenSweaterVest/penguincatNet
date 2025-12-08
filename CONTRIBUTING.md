@@ -29,18 +29,21 @@ This project follows a standard code of conduct. Please be respectful and constr
 ### Setup Development Environment
 
 1. **Fork and clone the repository**
+
    ```bash
    git fork https://github.com/BenSweaterVest/penguincatNet.git
    cd penguincatNet
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Configure environment variables**
    Create `.dev.vars` file:
+
    ```bash
    ADMIN_PASSWORD=your_dev_password
    GITHUB_TOKEN=your_github_token
@@ -77,6 +80,7 @@ footer (optional)
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -86,6 +90,7 @@ footer (optional)
 - `chore`: Maintenance tasks
 
 **Examples:**
+
 ```bash
 feat(api): add restaurant rating support
 fix(wheel): correct spin animation timing
@@ -98,10 +103,12 @@ test(api): add validation tests for profiles
 ### JavaScript Style Guide
 
 We use ESLint and Prettier for code formatting. Configuration files:
+
 - `.eslintrc.json` - Linting rules
 - `.prettierrc.json` - Formatting rules
 
 **Run linting:**
+
 ```bash
 npm run lint        # Check for issues
 npm run lint:fix    # Auto-fix issues
@@ -170,6 +177,7 @@ Tests are located in `tests/` directory and use Vitest.
 **Test file naming:** `[module-name].test.js`
 
 **Example test structure:**
+
 ```javascript
 import { describe, it, expect, beforeEach } from 'vitest';
 
@@ -202,12 +210,14 @@ describe('Module Name', () => {
 ### Before Submitting
 
 1. **Update from main branch**
+
    ```bash
    git fetch origin
    git rebase origin/main
    ```
 
 2. **Run quality checks**
+
    ```bash
    npm run lint
    npm run test
@@ -234,21 +244,26 @@ When creating a PR, include:
 
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 How was this tested?
 
 ## Screenshots (if applicable)
+
 Add screenshots for UI changes
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Tests added/updated
 - [ ] Documentation updated
@@ -263,6 +278,7 @@ Add screenshots for UI changes
 2. **Use shared utilities** from `functions/api/_shared.js`
 
 3. **Implement handlers**
+
    ```javascript
    import { verifyAuth, errorResponse, successResponse } from './_shared.js';
 
@@ -285,6 +301,7 @@ Add screenshots for UI changes
 ### API Response Format
 
 **Success:**
+
 ```json
 {
   "success": true,
@@ -293,6 +310,7 @@ Add screenshots for UI changes
 ```
 
 **Error:**
+
 ```json
 {
   "error": "Error message",

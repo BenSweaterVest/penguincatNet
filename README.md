@@ -70,12 +70,14 @@ Upon deployment to Cloudflare Pages, the application will be accessible at your 
 #### Option A: Dashboard Deployment (Recommended)
 
 **Repository Connection**
+
 1. Access Cloudflare Dashboard at https://dash.cloudflare.com
 2. Navigate to Workers & Pages section
 3. Select "Create application" → "Pages" → "Connect to Git"
 4. Authorize and select the target repository
 
 **Build Configuration**
+
 - Framework preset: `None`
 - Build command: (leave empty)
 - Build output directory: `/`
@@ -85,16 +87,17 @@ Upon deployment to Cloudflare Pages, the application will be accessible at your 
 
 Navigate to Settings → Environment variables and configure the following:
 
-| Variable | Value | Description |
-|----------|-------|-------------|
-| `ADMIN_PASSWORD` | User-defined string | Authentication credential for admin panel access |
-| `GITHUB_TOKEN` | GitHub PAT | Personal access token for repository API operations |
-| `GITHUB_REPO` | `username/repository` | Target repository in owner/name format |
-| `GITHUB_BRANCH` | Branch name | Target branch for data persistence (e.g., "main" or feature branch) |
+| Variable         | Value                 | Description                                                         |
+| ---------------- | --------------------- | ------------------------------------------------------------------- |
+| `ADMIN_PASSWORD` | User-defined string   | Authentication credential for admin panel access                    |
+| `GITHUB_TOKEN`   | GitHub PAT            | Personal access token for repository API operations                 |
+| `GITHUB_REPO`    | `username/repository` | Target repository in owner/name format                              |
+| `GITHUB_BRANCH`  | Branch name           | Target branch for data persistence (e.g., "main" or feature branch) |
 
 Ensure all variables are marked as encrypted for security purposes.
 
 **Deployment Execution**
+
 1. Save configuration changes
 2. Initiate deployment
 3. Monitor build logs for successful completion
@@ -141,6 +144,7 @@ The application is configured to serve from `index.html` in the repository root.
    - Special notes
 
 **Filter Behavior**:
+
 - **Service Type**: Defaults to "All Service Types" showing restaurants regardless of service method. Select a specific type to filter restaurants offering that service.
 - **Dining Profiles**: Profiles allow you to create custom restaurant subsets for specific scenarios. For example, if dining with someone who travels from a different location, create a profile with restaurants along their route. The "All Restaurants" profile includes all available options.
 - **Food Type Filters**: Multiple food types can be selected simultaneously. Restaurants matching any selected cuisine will be included.
@@ -210,18 +214,18 @@ The `restaurants.json` file maintains an array of restaurant objects with the fo
 
 #### Restaurant Field Specifications
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | Integer | Yes | Unique identifier, auto-incremented on creation |
-| `name` | String | Yes | Restaurant business name |
-| `foodTypes` | Array[String] | Yes | Cuisine categories for filtering |
-| `serviceTypes` | Array[String] | Yes | Available service options: "takeout", "delivery", "dine-in", "at-home" |
-| `profiles` | Array[String] | No | Profile IDs this restaurant is tagged with (empty array means no specific profiles) |
-| `orderMethod` | String | No | Instructions for ordering (e.g., "DoorDash", "call ahead", "online") |
-| `menuLink` | String | No | URL to the restaurant's menu |
-| `address` | String | No | Physical location address |
-| `phone` | String | No | Contact telephone number |
-| `notes` | String | No | Additional information about the restaurant |
+| Field          | Type          | Required | Description                                                                         |
+| -------------- | ------------- | -------- | ----------------------------------------------------------------------------------- |
+| `id`           | Integer       | Yes      | Unique identifier, auto-incremented on creation                                     |
+| `name`         | String        | Yes      | Restaurant business name                                                            |
+| `foodTypes`    | Array[String] | Yes      | Cuisine categories for filtering                                                    |
+| `serviceTypes` | Array[String] | Yes      | Available service options: "takeout", "delivery", "dine-in", "at-home"              |
+| `profiles`     | Array[String] | No       | Profile IDs this restaurant is tagged with (empty array means no specific profiles) |
+| `orderMethod`  | String        | No       | Instructions for ordering (e.g., "DoorDash", "call ahead", "online")                |
+| `menuLink`     | String        | No       | URL to the restaurant's menu                                                        |
+| `address`      | String        | No       | Physical location address                                                           |
+| `phone`        | String        | No       | Contact telephone number                                                            |
+| `notes`        | String        | No       | Additional information about the restaurant                                         |
 
 ### Profile Object Structure
 
@@ -248,10 +252,10 @@ The `restaurants.json` file also maintains an array of dining profile objects. P
 
 #### Profile Field Specifications
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | String | Yes | Unique identifier, generated from profile name (lowercase, hyphenated) |
-| `name` | String | Yes | Display name for the dining profile |
+| Field  | Type   | Required | Description                                                            |
+| ------ | ------ | -------- | ---------------------------------------------------------------------- |
+| `id`   | String | Yes      | Unique identifier, generated from profile name (lowercase, hyphenated) |
+| `name` | String | Yes      | Display name for the dining profile                                    |
 
 **Data Model**: Profiles are assigned to restaurants via the `profiles` array in each restaurant object, rather than profiles containing restaurant IDs. This restaurant-centric approach makes data management more intuitive and easier to maintain.
 
@@ -307,6 +311,7 @@ For manual data management, use this template to create or edit your `restaurant
 ```
 
 **Important Notes:**
+
 - Always include the "all" profile in your profiles array
 - Restaurant IDs must be unique integers
 - Profile IDs must use lowercase letters, numbers, and hyphens only
@@ -322,12 +327,14 @@ For manual data management, use this template to create or edit your `restaurant
 The application implements multiple security layers to protect data and prevent unauthorized access:
 
 **Authentication and Authorization:**
+
 - Administrative credentials stored as encrypted environment variables in Cloudflare
 - GitHub API token stored as encrypted secret
 - Token-based authentication for session management
 - Authentication required for all write operations (POST, DELETE)
 
 **Input Validation and Sanitization:**
+
 - Server-side validation of all incoming data
 - Type checking for arrays and required fields
 - Service type validation against allowed values (takeout, delivery, dine-in, at-home)
@@ -337,17 +344,20 @@ The application implements multiple security layers to protect data and prevent 
 - URL validation for menu links
 
 **Data Integrity:**
+
 - Cascade cleanup when profiles are deleted (removes profile references from restaurants)
 - SHA-based conflict detection for GitHub commits
 - Array existence checks before modification operations
 
 **Network Security:**
+
 - CORS headers configured for cross-origin resource sharing
 - **IMPORTANT: HTTPS Required** - All production deployments must use HTTPS to protect credentials in transit
 
 ### Production Recommendations
 
 For enterprise or high-security deployments, consider implementing:
+
 - JWT (JSON Web Tokens) with expiration for stateless authentication
 - OAuth 2.0 integration for identity management
 - Rate limiting on API endpoints to prevent brute force attacks
@@ -361,6 +371,7 @@ For enterprise or high-security deployments, consider implementing:
 ### Visual Styling Modifications
 
 **Color Scheme**
+
 - Primary gradient colors defined in CSS: `#667eea` and `#764ba2`
 - Wheel segment colors configured in JavaScript `CONFIG.WHEEL_COLORS` array
 - Modify these values in `index.html` for brand consistency
@@ -376,6 +387,7 @@ All wheel behavior parameters are centralized in the `CONFIG` constant at the to
 - `CACHE_MAX_AGE`: API response cache duration in seconds (default: 60)
 
 **Layout Dimensions**
+
 - Canvas dimensions: Controlled via `.wheel-container` CSS class
 - Responsive breakpoint: 768px (configured in media queries)
 
@@ -395,6 +407,7 @@ To add additional fields to restaurant records:
 **Symptom**: Restaurant data fails to load or displays empty state
 
 **Resolution Steps**:
+
 1. Verify `restaurants.json` exists in the repository root
 2. Confirm GitHub token has correct permissions:
    - Fine-grained: "Contents" repository permission with Read and Write access
@@ -409,6 +422,7 @@ To add additional fields to restaurant records:
 **Symptom**: Admin login rejected or returns unauthorized error
 
 **Resolution Steps**:
+
 1. Verify `ADMIN_PASSWORD` environment variable is configured
 2. Confirm password is case-sensitive and matches exactly
 3. Check browser developer console for authentication errors
@@ -420,6 +434,7 @@ To add additional fields to restaurant records:
 **Symptom**: Restaurant additions or deletions not saving
 
 **Resolution Steps**:
+
 1. Confirm `GITHUB_TOKEN` has write permissions for target repository
 2. Validate `GITHUB_REPO` format follows "username/repository" pattern
 3. Verify `GITHUB_BRANCH` matches the actual branch name in repository
@@ -433,6 +448,7 @@ To add additional fields to restaurant records:
 **Explanation**: The application enforces strict validation rules to maintain data integrity
 
 **Common Validation Rules**:
+
 - Service types must be one of: `takeout`, `delivery`, `dine-in`, or `at-home`
 - Profile IDs must contain only lowercase letters, numbers, and hyphens
 - Food types and service types must be provided as arrays
@@ -468,14 +484,17 @@ Note: Local development requires Node.js and npm to be installed.
 ## API Endpoints
 
 ### Authentication
+
 - **POST** `/api/auth` - Authenticate and receive session token
 
 ### Restaurant Operations
+
 - **GET** `/api/restaurants` - Retrieve all restaurant data
 - **POST** `/api/restaurants` - Create new restaurant (requires auth)
 - **DELETE** `/api/restaurants/:id` - Remove restaurant by ID (requires auth)
 
 ### Profile Operations
+
 - **GET** `/api/profiles` - Retrieve all dining profile data
 - **POST** `/api/profiles` - Create new dining profile (requires auth)
 - **DELETE** `/api/profiles/:id` - Remove profile by ID (requires auth)
@@ -497,30 +516,35 @@ All API endpoints return JSON responses and include appropriate CORS headers.
 The codebase implements several software engineering best practices:
 
 **Security:**
+
 - Input validation and sanitization at both client and server layers
 - XSS prevention through HTML escaping
 - CORS configuration for cross-origin requests
 - Secure token-based authentication
 
 **Code Organization:**
+
 - Configuration constants centralized in `CONFIG` object
 - Modular function design with single responsibilities
 - JSDoc-style documentation for functions
 - Descriptive variable and function naming conventions
 
 **Error Handling:**
+
 - Try-catch blocks for all async operations
 - Graceful fallbacks when API calls fail
 - User-friendly error messages
 - Validation errors with specific feedback
 
 **Data Integrity:**
+
 - SHA-based conflict detection for concurrent modifications
 - Cascade cleanup for referential integrity
 - Type validation for all data structures
 - Array existence checks before modifications
 
 **Performance:**
+
 - Request animation frame for smooth wheel animations
 - Easing functions for natural motion
 - Response caching with configurable TTL
