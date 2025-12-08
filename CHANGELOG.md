@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Shared API utilities module (`functions/api/_shared.js`) to eliminate code duplication
 - Restaurant edit functionality (PUT endpoint at `/api/restaurants`)
 - Profile edit functionality (PUT endpoint at `/api/profiles`)
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive input validation for all API endpoints
 
 ### Changed
+
 - Authentication tokens now include timestamp for expiration tracking
 - API responses now use standardized format from shared utilities
 - Restaurant IDs now support both UUID and integer formats
@@ -31,10 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved error messages across all API endpoints
 
 ### Fixed
+
 - Token validation now properly checks expiration time
 - Restaurant deletion now handles both UUID and integer IDs
 
 ### Security
+
 - Added token expiration (1-hour limit)
 - Enhanced input validation and sanitization
 - Improved URL validation
@@ -42,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2024-12-07
 
 ### Added
+
 - Sound Effects with toggleable controls
 - Custom wheel colors with color picker
 - PWA manifest for installable web app
@@ -65,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Responsive design for mobile and desktop
 
 ### Initial Features
+
 - Basic restaurant management (add, delete)
 - Profile management (add, delete)
 - Wheel spinning with animation
@@ -77,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - Initial Development
 
 ### Added
+
 - Project scaffolding
 - Basic HTML structure
 - Initial CSS styling
@@ -98,6 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### From 1.x to 2.x
 
 **Breaking Changes:**
+
 - Restaurant IDs may now be UUIDs instead of integers
 - Authentication tokens now expire after 1 hour
 - API responses format has changed (now includes `success` boolean)
@@ -105,6 +113,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Migration Steps:**
 
 1. **Update API client code** to handle new response format:
+
    ```javascript
    // Old format
    const data = await response.json();
@@ -124,6 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Both formats work with all endpoints
 
 4. **Install dependencies** for new tooling:
+
    ```bash
    npm install
    ```

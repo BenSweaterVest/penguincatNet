@@ -57,7 +57,7 @@ export async function onRequestDelete(context) {
     }
 
     // Locate profile record by ID
-    const index = data.profiles.findIndex(p => p.id === profileId);
+    const index = data.profiles.findIndex((p) => p.id === profileId);
 
     if (index === -1) {
       return errorResponse('Profile not found', 404, env);
@@ -68,25 +68,23 @@ export async function onRequestDelete(context) {
 
     // Clean up profile references in restaurants (cascade cleanup)
     if (data.restaurants) {
-      data.restaurants.forEach(restaurant => {
+      data.restaurants.forEach((restaurant) => {
         if (restaurant.profiles && Array.isArray(restaurant.profiles)) {
-          restaurant.profiles = restaurant.profiles.filter(p => p !== profileId);
+          restaurant.profiles = restaurant.profiles.filter((p) => p !== profileId);
         }
       });
     }
 
     // Commit changes to repository
-    await updateGitHub(
-      env,
-      data,
-      sha,
-      `Delete profile: ${deletedProfile.name}`
-    );
+    await updateGitHub(env, data, sha, `Delete profile: ${deletedProfile.name}`);
 
-    return successResponse({
-      success: true,
-      deleted: deletedProfile
-    }, env);
+    return successResponse(
+      {
+        success: true,
+        deleted: deletedProfile
+      },
+      env
+    );
   } catch (error) {
     console.error('Error deleting profile:', error);
     return errorResponse(`Failed to delete profile: ${error.message}`, 500, env);

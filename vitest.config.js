@@ -4,17 +4,13 @@ export default defineWorkersConfig({
   test: {
     poolOptions: {
       workers: {
-        wrangler: { configPath: './wrangler.toml' },
-      },
+        wrangler: { configPath: './wrangler.toml' }
+      }
     },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/**',
-        'tests/**',
-        '*.config.js'
-      ]
+      exclude: ['node_modules/**', 'tests/**', '*.config.js']
     }
-  },
+  }
 });

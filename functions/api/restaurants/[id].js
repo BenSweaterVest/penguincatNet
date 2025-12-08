@@ -47,7 +47,7 @@ export async function onRequestDelete(context) {
     const { data, sha } = await fetchFromGitHub(env);
 
     // Locate restaurant record by ID (support both string UUID and integer ID)
-    const index = data.restaurants.findIndex(r => String(r.id) === String(restaurantId));
+    const index = data.restaurants.findIndex((r) => String(r.id) === String(restaurantId));
 
     if (index === -1) {
       return errorResponse('Restaurant not found', 404, env);
@@ -57,17 +57,15 @@ export async function onRequestDelete(context) {
     data.restaurants.splice(index, 1);
 
     // Commit changes to repository
-    await updateGitHub(
-      env,
-      data,
-      sha,
-      `Delete restaurant: ${deletedRestaurant.name}`
-    );
+    await updateGitHub(env, data, sha, `Delete restaurant: ${deletedRestaurant.name}`);
 
-    return successResponse({
-      success: true,
-      deleted: deletedRestaurant
-    }, env);
+    return successResponse(
+      {
+        success: true,
+        deleted: deletedRestaurant
+      },
+      env
+    );
   } catch (error) {
     console.error('Error deleting restaurant:', error);
     return errorResponse(`Failed to delete restaurant: ${error.message}`, 500, env);

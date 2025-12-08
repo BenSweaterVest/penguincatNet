@@ -15,12 +15,7 @@ const API_CACHE = 'restaurant-picker-api-v1';
 const IMAGE_CACHE = 'restaurant-picker-images-v1';
 
 // Static assets to cache on install
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/sw.js'
-];
+const STATIC_ASSETS = ['/', '/index.html', '/manifest.json', '/sw.js'];
 
 /**
  * Service Worker Installation
@@ -30,7 +25,8 @@ self.addEventListener('install', (event) => {
   console.log('[ServiceWorker] Installing...');
 
   event.waitUntil(
-    caches.open(STATIC_CACHE)
+    caches
+      .open(STATIC_CACHE)
       .then((cache) => {
         console.log('[ServiceWorker] Caching static assets');
         return cache.addAll(STATIC_ASSETS);
@@ -55,7 +51,8 @@ self.addEventListener('activate', (event) => {
   const currentCaches = [STATIC_CACHE, API_CACHE, IMAGE_CACHE];
 
   event.waitUntil(
-    caches.keys()
+    caches
+      .keys()
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
@@ -202,18 +199,14 @@ self.addEventListener('message', (event) => {
 
   if (event.data && event.data.type === 'CACHE_URLS') {
     const { urls, cacheName } = event.data;
-    event.waitUntil(
-      caches.open(cacheName || STATIC_CACHE)
-        .then((cache) => cache.addAll(urls))
-    );
+    event.waitUntil(caches.open(cacheName || STATIC_CACHE).then((cache) => cache.addAll(urls)));
   }
 
   if (event.data && event.data.type === 'CLEAR_CACHE') {
     event.waitUntil(
-      caches.keys()
-        .then((cacheNames) => Promise.all(
-          cacheNames.map((cacheName) => caches.delete(cacheName))
-        ))
+      caches
+        .keys()
+        .then((cacheNames) => Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName))))
     );
   }
 });

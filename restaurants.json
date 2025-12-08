@@ -29,19 +29,9 @@
     {
       "id": 1,
       "name": "Mario's Italian Bistro",
-      "foodTypes": [
-        "Italian",
-        "Pizza"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "delivery",
-        "dine-in"
-      ],
-      "profiles": [
-        "date-night",
-        "family-friendly"
-      ],
+      "foodTypes": ["Italian", "Pizza"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["date-night", "family-friendly"],
       "orderMethod": "Call (555) 123-4567 or DoorDash",
       "menuLink": "https://example.com/marios",
       "address": "123 Main Street",
@@ -51,17 +41,9 @@
     {
       "id": 2,
       "name": "Spice of India",
-      "foodTypes": [
-        "Indian"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "delivery",
-        "dine-in"
-      ],
-      "profiles": [
-        "vegetarian-options"
-      ],
+      "foodTypes": ["Indian"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["vegetarian-options"],
       "orderMethod": "Grubhub or phone",
       "menuLink": "https://example.com/spiceofindia",
       "address": "456 Oak Avenue",
@@ -71,18 +53,9 @@
     {
       "id": 3,
       "name": "Taco Fiesta",
-      "foodTypes": [
-        "Mexican"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "dine-in"
-      ],
-      "profiles": [
-        "quick-lunch",
-        "family-friendly",
-        "late-night"
-      ],
+      "foodTypes": ["Mexican"],
+      "serviceTypes": ["takeout", "dine-in"],
+      "profiles": ["quick-lunch", "family-friendly", "late-night"],
       "orderMethod": "Call ahead for takeout",
       "menuLink": "https://example.com/tacofiesta",
       "address": "789 Pine Road",
@@ -92,17 +65,9 @@
     {
       "id": 4,
       "name": "Bangkok Street Kitchen",
-      "foodTypes": [
-        "Thai"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "delivery"
-      ],
-      "profiles": [
-        "quick-lunch",
-        "vegetarian-options"
-      ],
+      "foodTypes": ["Thai"],
+      "serviceTypes": ["takeout", "delivery"],
+      "profiles": ["quick-lunch", "vegetarian-options"],
       "orderMethod": "Uber Eats, DoorDash, or call",
       "menuLink": "https://example.com/bangkokstreet",
       "address": "321 Elm Street",
@@ -112,17 +77,9 @@
     {
       "id": 5,
       "name": "Sakura Sushi",
-      "foodTypes": [
-        "Japanese"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "delivery",
-        "dine-in"
-      ],
-      "profiles": [
-        "date-night"
-      ],
+      "foodTypes": ["Japanese"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["date-night"],
       "orderMethod": "Online at sakura-sushi.example.com or phone",
       "menuLink": "https://example.com/sakura",
       "address": "654 Maple Drive",
@@ -132,18 +89,9 @@
     {
       "id": 6,
       "name": "Mediterranean Grill",
-      "foodTypes": [
-        "Mediterranean/Middle Eastern"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "delivery",
-        "dine-in"
-      ],
-      "profiles": [
-        "quick-lunch",
-        "vegetarian-options"
-      ],
+      "foodTypes": ["Mediterranean/Middle Eastern"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["quick-lunch", "vegetarian-options"],
       "orderMethod": "Call or walk-in",
       "menuLink": "https://example.com/medgrill",
       "address": "258 Birch Way",
@@ -153,17 +101,9 @@
     {
       "id": 7,
       "name": "Seoul BBQ & Grill",
-      "foodTypes": [
-        "Korean",
-        "Barbecue"
-      ],
-      "serviceTypes": [
-        "dine-in"
-      ],
-      "profiles": [
-        "date-night",
-        "family-friendly"
-      ],
+      "foodTypes": ["Korean", "Barbecue"],
+      "serviceTypes": ["dine-in"],
+      "profiles": ["date-night", "family-friendly"],
       "orderMethod": "Walk-in or call for reservations",
       "menuLink": "https://example.com/seoulbbq",
       "address": "147 Garden Street",
@@ -173,16 +113,9 @@
     {
       "id": 8,
       "name": "Pho 88",
-      "foodTypes": [
-        "Vietnamese/Cambodian"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "dine-in"
-      ],
-      "profiles": [
-        "quick-lunch"
-      ],
+      "foodTypes": ["Vietnamese/Cambodian"],
+      "serviceTypes": ["takeout", "dine-in"],
+      "profiles": ["quick-lunch"],
       "orderMethod": "Call ahead",
       "menuLink": "https://example.com/pho88",
       "address": "963 River Road",
@@ -192,17 +125,9 @@
     {
       "id": 9,
       "name": "The Breakfast Club",
-      "foodTypes": [
-        "Breakfast & Brunch",
-        "Diner & Grill"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "dine-in"
-      ],
-      "profiles": [
-        "family-friendly"
-      ],
+      "foodTypes": ["Breakfast & Brunch", "Diner & Grill"],
+      "serviceTypes": ["takeout", "dine-in"],
+      "profiles": ["family-friendly"],
       "orderMethod": "Walk-in or call",
       "menuLink": "https://example.com/breakfastclub",
       "address": "852 Sunrise Boulevard",
@@ -212,18 +137,9 @@
     {
       "id": 10,
       "name": "Green Leaf Cafe",
-      "foodTypes": [
-        "Plant-based"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "delivery",
-        "dine-in"
-      ],
-      "profiles": [
-        "vegetarian-options",
-        "quick-lunch"
-      ],
+      "foodTypes": ["Plant-based"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["vegetarian-options", "quick-lunch"],
       "orderMethod": "Order online or call",
       "menuLink": "https://example.com/greenleaf",
       "address": "741 Wellness Way",
@@ -233,18 +149,9 @@
     {
       "id": 11,
       "name": "Pizza Palace",
-      "foodTypes": [
-        "Pizza"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "delivery"
-      ],
-      "profiles": [
-        "quick-lunch",
-        "family-friendly",
-        "late-night"
-      ],
+      "foodTypes": ["Pizza"],
+      "serviceTypes": ["takeout", "delivery"],
+      "profiles": ["quick-lunch", "family-friendly", "late-night"],
       "orderMethod": "Call or order online",
       "menuLink": "https://example.com/pizzapalace",
       "address": "369 Cheese Street",
@@ -254,15 +161,9 @@
     {
       "id": 12,
       "name": "La Petite Maison",
-      "foodTypes": [
-        "French"
-      ],
-      "serviceTypes": [
-        "dine-in"
-      ],
-      "profiles": [
-        "date-night"
-      ],
+      "foodTypes": ["French"],
+      "serviceTypes": ["dine-in"],
+      "profiles": ["date-night"],
       "orderMethod": "Reservations required - call ahead",
       "menuLink": "https://example.com/lapetitemaison",
       "address": "555 Elegant Avenue",
@@ -272,16 +173,9 @@
     {
       "id": 13,
       "name": "Smoke & Fire BBQ",
-      "foodTypes": [
-        "Barbecue"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "dine-in"
-      ],
-      "profiles": [
-        "family-friendly"
-      ],
+      "foodTypes": ["Barbecue"],
+      "serviceTypes": ["takeout", "dine-in"],
+      "profiles": ["family-friendly"],
       "orderMethod": "Call ahead for large orders",
       "menuLink": "https://example.com/smokefire",
       "address": "159 Hickory Lane",
@@ -291,17 +185,9 @@
     {
       "id": 14,
       "name": "Dragon Wok",
-      "foodTypes": [
-        "Chinese"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "delivery"
-      ],
-      "profiles": [
-        "quick-lunch",
-        "late-night"
-      ],
+      "foodTypes": ["Chinese"],
+      "serviceTypes": ["takeout", "delivery"],
+      "profiles": ["quick-lunch", "late-night"],
       "orderMethod": "Grubhub, Uber Eats, or phone",
       "menuLink": "https://example.com/dragonwok",
       "address": "753 Bamboo Street",
@@ -311,15 +197,9 @@
     {
       "id": 15,
       "name": "Homemade Pasta Night",
-      "foodTypes": [
-        "Italian"
-      ],
-      "serviceTypes": [
-        "at-home"
-      ],
-      "profiles": [
-        "date-night"
-      ],
+      "foodTypes": ["Italian"],
+      "serviceTypes": ["at-home"],
+      "profiles": ["date-night"],
       "orderMethod": "Cook at home",
       "menuLink": "",
       "address": "",
@@ -329,16 +209,9 @@
     {
       "id": 16,
       "name": "Quick Stir-Fry",
-      "foodTypes": [
-        "Chinese"
-      ],
-      "serviceTypes": [
-        "at-home"
-      ],
-      "profiles": [
-        "quick-lunch",
-        "vegetarian-options"
-      ],
+      "foodTypes": ["Chinese"],
+      "serviceTypes": ["at-home"],
+      "profiles": ["quick-lunch", "vegetarian-options"],
       "orderMethod": "Cook at home",
       "menuLink": "",
       "address": "",
@@ -348,15 +221,9 @@
     {
       "id": 17,
       "name": "Breakfast Scramble",
-      "foodTypes": [
-        "Breakfast & Brunch"
-      ],
-      "serviceTypes": [
-        "at-home"
-      ],
-      "profiles": [
-        "quick-lunch"
-      ],
+      "foodTypes": ["Breakfast & Brunch"],
+      "serviceTypes": ["at-home"],
+      "profiles": ["quick-lunch"],
       "orderMethod": "Cook at home",
       "menuLink": "",
       "address": "",
@@ -366,16 +233,9 @@
     {
       "id": 18,
       "name": "Addis Ethiopian Kitchen",
-      "foodTypes": [
-        "Ethiopian"
-      ],
-      "serviceTypes": [
-        "takeout",
-        "dine-in"
-      ],
-      "profiles": [
-        "vegetarian-options"
-      ],
+      "foodTypes": ["Ethiopian"],
+      "serviceTypes": ["takeout", "dine-in"],
+      "profiles": ["vegetarian-options"],
       "orderMethod": "Call ahead",
       "menuLink": "https://example.com/addiskitchen",
       "address": "842 Spice Market Way",
