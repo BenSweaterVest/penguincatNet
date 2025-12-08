@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { env, createExecutionContext, waitOnExecutionContext, SELF } from 'cloudflare:test';
-import worker from '../../functions/api/auth.js';
+import { onRequestPost, onRequestOptions } from '../../functions/api/auth.js';
 
 describe('Authentication API', () => {
   let context;
@@ -22,7 +22,7 @@ describe('Authentication API', () => {
       body: JSON.stringify({ password: env.ADMIN_PASSWORD })
     });
 
-    const response = await worker.onRequestPost({ request, env, context });
+    const response = await onRequestPost({ request, env, context });
     await waitOnExecutionContext(context);
 
     expect(response.status).toBe(200);
@@ -39,7 +39,7 @@ describe('Authentication API', () => {
       body: JSON.stringify({ password: 'wrong-password' })
     });
 
-    const response = await worker.onRequestPost({ request, env, context });
+    const response = await onRequestPost({ request, env, context });
     await waitOnExecutionContext(context);
 
     expect(response.status).toBe(401);
@@ -56,7 +56,7 @@ describe('Authentication API', () => {
       body: 'invalid json'
     });
 
-    const response = await worker.onRequestPost({ request, env, context });
+    const response = await onRequestPost({ request, env, context });
     await waitOnExecutionContext(context);
 
     expect(response.status).toBe(400);
@@ -70,7 +70,7 @@ describe('Authentication API', () => {
       method: 'OPTIONS'
     });
 
-    const response = await worker.onRequestOptions({ request, env, context });
+    const response = await onRequestOptions({ request, env, context });
     await waitOnExecutionContext(context);
 
     expect(response.status).toBe(200);
@@ -85,7 +85,7 @@ describe('Authentication API', () => {
       body: JSON.stringify({ password: env.ADMIN_PASSWORD })
     });
 
-    const response = await worker.onRequestPost({ request, env, context });
+    const response = await onRequestPost({ request, env, context });
     const data = await response.json();
 
     // Decode token to verify it contains timestamp

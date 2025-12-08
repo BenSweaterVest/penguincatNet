@@ -98,17 +98,15 @@ export async function onRequestPost(context) {
     data.restaurants.push(newRestaurant);
 
     // Commit changes to repository
-    await updateGitHub(
-      env,
-      data,
-      sha,
-      `Add restaurant: ${newRestaurant.name}`
-    );
+    await updateGitHub(env, data, sha, `Add restaurant: ${newRestaurant.name}`);
 
-    return successResponse({
-      success: true,
-      restaurant: newRestaurant
-    }, env);
+    return successResponse(
+      {
+        success: true,
+        restaurant: newRestaurant
+      },
+      env
+    );
   } catch (error) {
     console.error('Error adding restaurant:', error);
     return errorResponse(`Failed to add restaurant: ${error.message}`, 500, env);
@@ -146,7 +144,7 @@ export async function onRequestPut(context) {
     const { data, sha } = await fetchFromGitHub(env);
 
     // Find restaurant by ID
-    const index = data.restaurants.findIndex(r => r.id === updatedRestaurant.id);
+    const index = data.restaurants.findIndex((r) => r.id === updatedRestaurant.id);
 
     if (index === -1) {
       return errorResponse('Restaurant not found', 404, env);
@@ -156,17 +154,15 @@ export async function onRequestPut(context) {
     data.restaurants[index] = updatedRestaurant;
 
     // Commit changes to repository
-    await updateGitHub(
-      env,
-      data,
-      sha,
-      `Update restaurant: ${updatedRestaurant.name}`
-    );
+    await updateGitHub(env, data, sha, `Update restaurant: ${updatedRestaurant.name}`);
 
-    return successResponse({
-      success: true,
-      restaurant: updatedRestaurant
-    }, env);
+    return successResponse(
+      {
+        success: true,
+        restaurant: updatedRestaurant
+      },
+      env
+    );
   } catch (error) {
     console.error('Error updating restaurant:', error);
     return errorResponse(`Failed to update restaurant: ${error.message}`, 500, env);
