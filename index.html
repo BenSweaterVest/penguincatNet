@@ -2319,8 +2319,24 @@
             event.target.value = '';
         }
 
+        /**
+         * Register service worker for offline support
+         */
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            }
+        }
+
         // Start the app
         init();
+        registerServiceWorker();
     </script>
 
     <footer class="footer">
