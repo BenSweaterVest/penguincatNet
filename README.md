@@ -2,6 +2,15 @@
 
 A web-based restaurant selection application utilizing a randomized spinning wheel interface. This application provides a practical solution for group decision-making when selecting dining options.
 
+## 📚 Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes (new users start here!)
+- **[README.md](README.md)** - Complete documentation (you are here)
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development guidelines and how to contribute
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and updates
+- **[IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)** - Adding new features to the app
+- **[openapi.yaml](openapi.yaml)** - API documentation (view at [editor.swagger.io](https://editor.swagger.io))
+
 ## Overview
 
 This is a single-page application built for Cloudflare Pages with serverless functions. The application stores restaurant data in a GitHub repository and provides both public-facing selection functionality and password-protected administrative controls.
