@@ -20,6 +20,7 @@ This is a single-page application built for Cloudflare Pages with serverless fun
 - **Randomized Selection Interface**: Canvas-based spinning wheel for restaurant selection
 - **Service Type Wheel**: Fun mini-wheel to randomly pick between takeout, delivery, dine-in, or cooking at home
 - **Dining Profiles**: Configure custom restaurant subsets for different scenarios with autocomplete selector
+- **URL-Based Profile Routing**: Direct access to specific profiles via URL paths (e.g., `yoursite.com/quick-lunch`)
 - **Service Type Filtering**: Dropdown selector for takeout, delivery, dine-in, or at-home options
 - **At-Home Cooking Option**: Include recipes and dishes you can make at home alongside restaurant choices
 - **Cuisine Filtering**: Dynamic checkbox filters for food type categories
@@ -27,10 +28,33 @@ This is a single-page application built for Cloudflare Pages with serverless fun
 - **Data Management**: CRUD operations for restaurant and profile entries via admin panel
 - **GitHub Integration**: Restaurant and profile data persisted in repository as JSON
 - **Cloudflare Functions**: Serverless API endpoints for data operations
+- **Static Deployment Mode**: Optional deployment without Cloudflare Functions for simpler hosting
 
 ## Deployment Information
 
 Upon deployment to Cloudflare Pages, the application will be accessible at your assigned pages.dev domain or custom domain if configured.
+
+### URL-Based Profile Access
+
+The application supports direct profile access via URL paths, making it easy to share specific profiles:
+
+- **Base URL** (`/`): Shows all restaurants (default view)
+- **Profile URLs** (`/profile-id`): Automatically loads the specified profile
+
+**Examples:**
+- `yoursite.com/` - All restaurants
+- `yoursite.com/quick-lunch` - Quick Lunch profile
+- `yoursite.com/date-night` - Date Night profile
+- `yoursite.com/vegetarian-options` - Great Vegetarian Options profile
+
+**Features:**
+- URLs are automatically updated when you select a different profile
+- Browser back/forward buttons work correctly
+- Shareable links maintain profile selection
+- Page title updates to show the active profile
+- Invalid profile IDs gracefully fall back to "all restaurants"
+
+**Usage:** After creating a profile (e.g., "Work Food" with ID `work`), users can access it directly at `yoursite.com/work`. This is especially useful for bookmarking frequently used profiles or sharing specific restaurant subsets with others.
 
 ## Setup Instructions
 
@@ -125,6 +149,70 @@ wrangler pages secret put GITHUB_BRANCH
 ### 4. Post-Deployment Configuration
 
 The application is configured to serve from `index.html` in the repository root. This has been pre-configured in the current repository structure. No additional routing configuration is required for standard deployments.
+
+### 5. Alternative: Static-Only Deployment
+
+For simpler deployments without Cloudflare Functions, you can deploy the application as a static site. In this mode:
+
+- **Data Loading**: The application loads data directly from `restaurants.json` instead of API endpoints
+- **Read-Only Mode**: Admin panel is automatically hidden (no write operations available)
+- **Manual Updates**: Restaurant data must be updated by editing `restaurants.json` directly in GitHub
+- **Simpler Hosting**: Can be deployed to any static hosting service (GitHub Pages, Netlify, Vercel, etc.)
+
+#### Static Deployment Steps
+
+**Option A: GitHub Pages**
+
+1. Push `index.html` and `restaurants.json` to your repository
+2. Go to repository Settings → Pages
+3. Select source branch (e.g., `main`)
+4. Select root folder `/`
+5. Save and wait for deployment
+6. Access at `https://username.github.io/repository-name/`
+
+**Option B: Netlify**
+
+1. Connect your GitHub repository to Netlify
+2. Configure build settings:
+   - Build command: (leave empty)
+   - Publish directory: `/`
+3. Deploy the site
+4. Access at your assigned Netlify subdomain or custom domain
+
+**Option C: Vercel**
+
+1. Import your GitHub repository in Vercel
+2. Configure project settings:
+   - Framework Preset: Other
+   - Build Command: (leave empty)
+   - Output Directory: `/`
+3. Deploy the project
+4. Access at your assigned Vercel subdomain or custom domain
+
+#### Updating Restaurant Data in Static Mode
+
+To add, edit, or remove restaurants:
+
+1. Navigate to your repository on GitHub
+2. Click on `restaurants.json`
+3. Click the pencil icon to edit
+4. Make your changes following the data schema (see Data Schema section)
+5. Commit changes with a descriptive message
+6. Changes will be reflected on your site after deployment completes (usually within minutes)
+
+**Advantages of Static Mode:**
+- Simpler setup (no environment variables or API configuration)
+- Works with any static hosting service
+- No serverless function overhead
+- Completely free hosting options available
+
+**Limitations of Static Mode:**
+- No admin panel (all updates must be done via GitHub)
+- Manual JSON editing required
+- No built-in authentication system
+- Potential for JSON syntax errors when editing manually
+
+**Recommendation:** Use Cloudflare Functions deployment for team environments where multiple people need to manage restaurants. Use static deployment for personal use or simple setups where you're comfortable editing JSON files directly.
 
 ## Usage
 

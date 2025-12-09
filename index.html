@@ -1269,24 +1269,66 @@
             }, 2000);
         }
 
-        // Load restaurants from API
+        // Configuration for deployment mode
+        let isStaticMode = false; // Will be set to true if API is not available
+
+        /**
+         * Load restaurants from API or static JSON file
+         * Tries to load from /api/restaurants (Cloudflare Functions)
+         * Falls back to /restaurants.json (static deployment) if API is unavailable
+         */
         async function loadRestaurants() {
             try {
+                // First, try to load from API (Cloudflare Functions)
                 const response = await fetch('/api/restaurants');
+                if (!response.ok) {
+                    throw new Error(`API returned ${response.status}`);
+                }
                 const data = await response.json();
                 restaurants = data.restaurants || [];
                 profiles = data.profiles || [{id: 'all', name: 'All Restaurants'}];
-            } catch (error) {
-                console.error('Error loading restaurants:', error);
-                // Fallback to local data
-                restaurants = [
-                    {id: 1, name: "Mario's Italian Bistro", foodTypes: ["Italian", "Pizza"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or DoorDash", menuLink: "", notes: ""},
-                    {id: 2, name: "Golden Dragon", foodTypes: ["Chinese", "Asian"], serviceTypes: ["takeout", "delivery"], profiles: [], orderMethod: "Phone", menuLink: "", notes: ""},
-                    {id: 3, name: "Taco Fiesta", foodTypes: ["Mexican", "Latin"], serviceTypes: ["takeout", "dine-in"], profiles: [], orderMethod: "Call ahead", menuLink: "", notes: ""},
-                    {id: 4, name: "Burger Palace", foodTypes: ["American", "Burgers"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or app", menuLink: "", notes: ""},
-                    {id: 5, name: "Sushi Paradise", foodTypes: ["Japanese", "Asian", "Sushi"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or online", menuLink: "", notes: ""}
-                ];
-                profiles = [{id: 'all', name: 'All Restaurants'}];
+                isStaticMode = false; // API is available
+            } catch (apiError) {
+                console.log('API not available, trying static JSON file...', apiError);
+
+                try {
+                    // Fallback to static JSON file
+                    const response = await fetch('/restaurants.json');
+                    if (!response.ok) {
+                        throw new Error(`Static JSON file returned ${response.status}`);
+                    }
+                    const data = await response.json();
+                    restaurants = data.restaurants || [];
+                    profiles = data.profiles || [{id: 'all', name: 'All Restaurants'}];
+                    isStaticMode = true; // Running in static mode
+
+                    // Hide admin login button in static mode
+                    const adminBtn = document.getElementById('adminBtn');
+                    if (adminBtn) {
+                        adminBtn.style.display = 'none';
+                    }
+
+                    console.log('Loaded data from static JSON file (static deployment mode)');
+                } catch (staticError) {
+                    console.error('Error loading from both API and static file:', staticError);
+
+                    // Final fallback to hardcoded demo data
+                    restaurants = [
+                        {id: 1, name: "Mario's Italian Bistro", foodTypes: ["Italian", "Pizza"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or DoorDash", menuLink: "", notes: ""},
+                        {id: 2, name: "Golden Dragon", foodTypes: ["Chinese", "Asian"], serviceTypes: ["takeout", "delivery"], profiles: [], orderMethod: "Phone", menuLink: "", notes: ""},
+                        {id: 3, name: "Taco Fiesta", foodTypes: ["Mexican", "Latin"], serviceTypes: ["takeout", "dine-in"], profiles: [], orderMethod: "Call ahead", menuLink: "", notes: ""},
+                        {id: 4, name: "Burger Palace", foodTypes: ["American", "Burgers"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or app", menuLink: "", notes: ""},
+                        {id: 5, name: "Sushi Paradise", foodTypes: ["Japanese", "Asian", "Sushi"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or online", menuLink: "", notes: ""}
+                    ];
+                    profiles = [{id: 'all', name: 'All Restaurants'}];
+                    isStaticMode = true;
+
+                    // Hide admin login button
+                    const adminBtn = document.getElementById('adminBtn');
+                    if (adminBtn) {
+                        adminBtn.style.display = 'none';
+                    }
+                }
             }
 
             // Initialize local working copies
