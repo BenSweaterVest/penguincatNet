@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **URL-based profile routing** - Direct access to profiles via URL paths (e.g., `yoursite.com/quick-lunch`)
+  - Automatic URL updates when selecting profiles
+  - Browser back/forward button support via popstate events
+  - Page title updates to reflect active profile
+  - Shareable profile links
+  - Cloudflare Pages `_redirects` configuration for clean URLs
+- **Static deployment mode** - Optional deployment without Cloudflare Functions
+  - Automatic fallback from API to `/restaurants.json`
+  - Admin panel automatically hidden in static mode
+  - Compatible with GitHub Pages, Netlify, Vercel, and other static hosts
+  - Deployment mode detection and console logging
 - Shared API utilities module (`functions/api/_shared.js`) to eliminate code duplication
 - Restaurant edit functionality (PUT endpoint at `/api/restaurants`)
 - Profile edit functionality (PUT endpoint at `/api/profiles`)
