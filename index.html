@@ -1069,17 +1069,55 @@
             return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
         }
 
+        /**
+         * Load profile from URL path
+         * Checks the pathname (e.g., /work) and auto-selects that profile if it exists
+         */
+        function loadProfileFromURL() {
+            const pathname = window.location.pathname;
+
+            // Remove leading and trailing slashes, get the first path segment
+            const pathSegments = pathname.split('/').filter(segment => segment.length > 0);
+
+            if (pathSegments.length === 0) {
+                // No path segment, stay on 'all' profile
+                return;
+            }
+
+            const profileId = pathSegments[0];
+
+            // Check if this profile exists
+            const profile = profiles.find(p => p.id === profileId);
+
+            if (profile) {
+                // Auto-select this profile
+                selectedProfile = profile.id;
+                updateProfileInput();
+
+                // Update page title to show the profile
+                document.title = `Restaurant Picker - ${profile.name}`;
+            }
+            // If profile doesn't exist, just stay on default 'all' profile
+        }
+
         // Initialize
         async function init() {
             initDarkMode(); // Load dark mode preference first
             initSound(); // Load sound preference
             initWheelColor(); // Load wheel color preference
             await loadRestaurants();
+            loadProfileFromURL(); // Load profile from URL if present
             updateProfileInput();
             updateFoodTypeFilters();
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
             initServiceWheel();
+
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', (e) => {
+                loadProfileFromURL();
+                drawWheel();
+            });
 
             // Warn before leaving with unsaved changes
             window.addEventListener('beforeunload', (e) => {
@@ -1669,6 +1707,7 @@
 
         /**
          * Select a profile from the autocomplete suggestions
+         * Updates the URL to reflect the selected profile
          * @param {string} profileId - The ID of the selected profile
          * @param {string} profileName - The display name of the selected profile
          */
@@ -1678,6 +1717,15 @@
             input.value = profileName;
             const suggestionsContainer = document.getElementById('profileSuggestions');
             suggestionsContainer.classList.remove('active');
+
+            // Update URL to reflect the selected profile
+            const newPath = profileId === 'all' ? '/' : `/${profileId}`;
+            window.history.pushState({ profileId }, '', newPath);
+
+            // Update page title
+            const newTitle = profileId === 'all' ? 'Restaurant Picker' : `Restaurant Picker - ${profileName}`;
+            document.title = newTitle;
+
             drawWheel();
         }
 
