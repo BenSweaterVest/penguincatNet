@@ -6,6 +6,7 @@
  * Endpoints:
  * - GET  /api/profiles     - Retrieve all profile records (public)
  * - POST /api/profiles     - Create new profile record (authenticated)
+ * - PUT  /api/profiles     - Update existing profile record (authenticated)
  *
  * Data Storage:
  * Utilizes GitHub Contents API for persistent storage in repository JSON file.
@@ -21,92 +22,15 @@
  * Write operations require Bearer token obtained from /api/auth endpoint.
  */
 
-const RESTAURANT_FILE = 'restaurants.json';
-
-/**
- * Verify authentication token from request headers
- * @param {Request} request - Incoming request object
- * @param {Object} env - Environment variables
- * @returns {boolean} - Authentication status
- */
-function verifyAuth(request, env) {
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return false;
-  }
-
-  const token = authHeader.substring(7);
-  try {
-    const decoded = atob(token);
-    const [password] = decoded.split(':');
-    return password === env.ADMIN_PASSWORD;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Retrieve restaurant data file from GitHub repository
- * @param {Object} env - Environment variables containing GitHub credentials
- * @returns {Object} - Object containing parsed data and file SHA
- */
-async function fetchFromGitHub(env) {
-  const url = `https://api.github.com/repos/${env.GITHUB_REPO}/contents/${RESTAURANT_FILE}?ref=${env.GITHUB_BRANCH}`;
-
-  const response = await fetch(url, {
-    headers: {
-      'Authorization': `token ${env.GITHUB_TOKEN}`,
-      'Accept': 'application/vnd.github.v3+json',
-      'User-Agent': 'Restaurant-Picker-App'
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`GitHub API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const content = atob(data.content);
-  return {
-    data: JSON.parse(content),
-    sha: data.sha
-  };
-}
-
-/**
- * Commit updated restaurant data to GitHub repository
- * @param {Object} env - Environment variables containing GitHub credentials
- * @param {Object} content - Updated restaurant data object
- * @param {string} sha - Current file SHA for conflict detection
- * @param {string} message - Commit message
- * @returns {Object} - GitHub API response
- */
-async function updateGitHub(env, content, sha, message) {
-  const url = `https://api.github.com/repos/${env.GITHUB_REPO}/contents/${RESTAURANT_FILE}`;
-
-  const response = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `token ${env.GITHUB_TOKEN}`,
-      'Accept': 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json',
-      'User-Agent': 'Restaurant-Picker-App'
-    },
-    body: JSON.stringify({
-      message: message,
-      content: btoa(JSON.stringify(content, null, 2)),
-      sha: sha,
-      branch: env.GITHUB_BRANCH
-    })
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`GitHub update failed: ${response.status} - ${error}`);
-  }
-
-  return await response.json();
-}
+import {
+  verifyAuth,
+  fetchFromGitHub,
+  updateGitHub,
+  getCorsHeaders,
+  errorResponse,
+  successResponse,
+  validateProfileId
+} from './_shared.js';
 
 /**
  * GET Request Handler
@@ -120,28 +44,21 @@ export async function onRequestGet(context) {
   try {
     const { data } = await fetchFromGitHub(env);
 
-    return new Response(JSON.stringify({
-      profiles: data.profiles || []
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'public, max-age=60'
+    return new Response(
+      JSON.stringify({
+        profiles: data.profiles || []
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...getCorsHeaders(env),
+          'Cache-Control': 'public, max-age=60'
+        }
       }
-    });
+    );
   } catch (error) {
     console.error('Error fetching profiles:', error);
-
-    return new Response(JSON.stringify({
-      error: 'Failed to fetch profiles',
-      profiles: []
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return errorResponse('Failed to fetch profiles', 500, env);
   }
 }
 
@@ -156,15 +73,7 @@ export async function onRequestPost(context) {
 
   // Verify authentication
   if (!verifyAuth(request, env)) {
-    return new Response(JSON.stringify({
-      error: 'Unauthorized'
-    }), {
-      status: 401,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return errorResponse('Unauthorized', 401, env);
   }
 
   try {
@@ -172,42 +81,22 @@ export async function onRequestPost(context) {
 
     // Validate required fields per data schema
     if (!newProfile.id || !newProfile.name) {
-      return new Response(JSON.stringify({
-        error: 'Missing required fields'
-      }), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+      return errorResponse('Missing required fields: id and name', 400, env);
     }
 
     // Validate profile ID format (lowercase, hyphenated)
-    if (!/^[a-z0-9-]+$/.test(newProfile.id)) {
-      return new Response(JSON.stringify({
-        error: 'Profile ID must contain only lowercase letters, numbers, and hyphens'
-      }), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+    if (!validateProfileId(newProfile.id)) {
+      return errorResponse(
+        'Profile ID must contain only lowercase letters, numbers, and hyphens',
+        400,
+        env
+      );
     }
 
     // Check for reserved profile IDs
     const reservedIds = ['all'];
     if (reservedIds.includes(newProfile.id)) {
-      return new Response(JSON.stringify({
-        error: 'Profile ID is reserved and cannot be used'
-      }), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+      return errorResponse('Profile ID is reserved and cannot be used', 400, env);
     }
 
     // Retrieve current data and file SHA
@@ -215,55 +104,86 @@ export async function onRequestPost(context) {
 
     // Ensure profiles array exists
     if (!data.profiles) {
-      data.profiles = [{id: 'all', name: 'All Restaurants'}];
+      data.profiles = [{ id: 'all', name: 'All Restaurants' }];
     }
 
     // Check if profile with this ID already exists
-    if (data.profiles.find(p => p.id === newProfile.id)) {
-      return new Response(JSON.stringify({
-        error: 'Profile with this ID already exists'
-      }), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+    if (data.profiles.find((p) => p.id === newProfile.id)) {
+      return errorResponse('Profile with this ID already exists', 400, env);
     }
 
     // Append new profile to existing data
     data.profiles.push(newProfile);
 
     // Commit changes to repository
-    await updateGitHub(
-      env,
-      data,
-      sha,
-      `Add profile: ${newProfile.name}`
-    );
+    await updateGitHub(env, data, sha, `Add profile: ${newProfile.name}`);
 
-    return new Response(JSON.stringify({
-      success: true,
-      profile: newProfile
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return successResponse(
+      {
+        success: true,
+        profile: newProfile
+      },
+      env
+    );
   } catch (error) {
     console.error('Error adding profile:', error);
+    return errorResponse(`Failed to add profile: ${error.message}`, 500, env);
+  }
+}
 
-    return new Response(JSON.stringify({
-      error: 'Failed to add profile',
-      details: error.message
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+/**
+ * PUT Request Handler
+ * Updates existing profile record with authentication validation
+ * @param {Object} context - Cloudflare Pages Functions context
+ * @returns {Response} - JSON response with operation result
+ */
+export async function onRequestPut(context) {
+  const { request, env } = context;
+
+  // Verify authentication
+  if (!verifyAuth(request, env)) {
+    return errorResponse('Unauthorized', 401, env);
+  }
+
+  try {
+    const updatedProfile = await request.json();
+
+    // Validate required fields
+    if (!updatedProfile.id || !updatedProfile.name) {
+      return errorResponse('Missing required fields: id and name', 400, env);
+    }
+
+    // Prevent editing "all" profile
+    if (updatedProfile.id === 'all') {
+      return errorResponse('Cannot edit the default "All Restaurants" profile', 400, env);
+    }
+
+    // Retrieve current data and file SHA
+    const { data, sha } = await fetchFromGitHub(env);
+
+    // Find profile by ID
+    const index = data.profiles.findIndex((p) => p.id === updatedProfile.id);
+
+    if (index === -1) {
+      return errorResponse('Profile not found', 404, env);
+    }
+
+    // Update profile (only name can change, ID stays the same)
+    data.profiles[index].name = updatedProfile.name;
+
+    // Commit changes to repository
+    await updateGitHub(env, data, sha, `Update profile: ${updatedProfile.name}`);
+
+    return successResponse(
+      {
+        success: true,
+        profile: data.profiles[index]
+      },
+      env
+    );
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    return errorResponse(`Failed to update profile: ${error.message}`, 500, env);
   }
 }
 
@@ -272,12 +192,8 @@ export async function onRequestPost(context) {
  * Responds to CORS preflight requests
  * @returns {Response} - CORS headers response
  */
-export async function onRequestOptions() {
+export async function onRequestOptions(context) {
   return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-    }
+    headers: getCorsHeaders(context.env)
   });
 }

@@ -2,6 +2,15 @@
 
 A web-based restaurant selection application utilizing a randomized spinning wheel interface. This application provides a practical solution for group decision-making when selecting dining options.
 
+## 📚 Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes (new users start here!)
+- **[README.md](README.md)** - Complete documentation (you are here)
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development guidelines and how to contribute
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and updates
+- **[IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)** - Adding new features to the app
+- **[openapi.yaml](openapi.yaml)** - API documentation (view at [editor.swagger.io](https://editor.swagger.io))
+
 ## Overview
 
 This is a single-page application built for Cloudflare Pages with serverless functions. The application stores restaurant data in a GitHub repository and provides both public-facing selection functionality and password-protected administrative controls.
@@ -11,6 +20,7 @@ This is a single-page application built for Cloudflare Pages with serverless fun
 - **Randomized Selection Interface**: Canvas-based spinning wheel for restaurant selection
 - **Service Type Wheel**: Fun mini-wheel to randomly pick between takeout, delivery, dine-in, or cooking at home
 - **Dining Profiles**: Configure custom restaurant subsets for different scenarios with autocomplete selector
+- **URL-Based Profile Routing**: Direct access to specific profiles via URL paths (e.g., `yoursite.com/quick-lunch`)
 - **Service Type Filtering**: Dropdown selector for takeout, delivery, dine-in, or at-home options
 - **At-Home Cooking Option**: Include recipes and dishes you can make at home alongside restaurant choices
 - **Cuisine Filtering**: Dynamic checkbox filters for food type categories
@@ -18,10 +28,33 @@ This is a single-page application built for Cloudflare Pages with serverless fun
 - **Data Management**: CRUD operations for restaurant and profile entries via admin panel
 - **GitHub Integration**: Restaurant and profile data persisted in repository as JSON
 - **Cloudflare Functions**: Serverless API endpoints for data operations
+- **Static Deployment Mode**: Optional deployment without Cloudflare Functions for simpler hosting
 
 ## Deployment Information
 
 Upon deployment to Cloudflare Pages, the application will be accessible at your assigned pages.dev domain or custom domain if configured.
+
+### URL-Based Profile Access
+
+The application supports direct profile access via URL paths, making it easy to share specific profiles:
+
+- **Base URL** (`/`): Shows all restaurants (default view)
+- **Profile URLs** (`/profile-id`): Automatically loads the specified profile
+
+**Examples:**
+- `yoursite.com/` - All restaurants
+- `yoursite.com/quick-lunch` - Quick Lunch profile
+- `yoursite.com/date-night` - Date Night profile
+- `yoursite.com/vegetarian-options` - Great Vegetarian Options profile
+
+**Features:**
+- URLs are automatically updated when you select a different profile
+- Browser back/forward buttons work correctly
+- Shareable links maintain profile selection
+- Page title updates to show the active profile
+- Invalid profile IDs gracefully fall back to "all restaurants"
+
+**Usage:** After creating a profile (e.g., "Work Food" with ID `work`), users can access it directly at `yoursite.com/work`. This is especially useful for bookmarking frequently used profiles or sharing specific restaurant subsets with others.
 
 ## Setup Instructions
 
@@ -61,12 +94,14 @@ Upon deployment to Cloudflare Pages, the application will be accessible at your 
 #### Option A: Dashboard Deployment (Recommended)
 
 **Repository Connection**
+
 1. Access Cloudflare Dashboard at https://dash.cloudflare.com
 2. Navigate to Workers & Pages section
 3. Select "Create application" → "Pages" → "Connect to Git"
 4. Authorize and select the target repository
 
 **Build Configuration**
+
 - Framework preset: `None`
 - Build command: (leave empty)
 - Build output directory: `/`
@@ -76,16 +111,17 @@ Upon deployment to Cloudflare Pages, the application will be accessible at your 
 
 Navigate to Settings → Environment variables and configure the following:
 
-| Variable | Value | Description |
-|----------|-------|-------------|
-| `ADMIN_PASSWORD` | User-defined string | Authentication credential for admin panel access |
-| `GITHUB_TOKEN` | GitHub PAT | Personal access token for repository API operations |
-| `GITHUB_REPO` | `username/repository` | Target repository in owner/name format |
-| `GITHUB_BRANCH` | Branch name | Target branch for data persistence (e.g., "main" or feature branch) |
+| Variable         | Value                 | Description                                                         |
+| ---------------- | --------------------- | ------------------------------------------------------------------- |
+| `ADMIN_PASSWORD` | User-defined string   | Authentication credential for admin panel access                    |
+| `GITHUB_TOKEN`   | GitHub PAT            | Personal access token for repository API operations                 |
+| `GITHUB_REPO`    | `username/repository` | Target repository in owner/name format                              |
+| `GITHUB_BRANCH`  | Branch name           | Target branch for data persistence (e.g., "main" or feature branch) |
 
 Ensure all variables are marked as encrypted for security purposes.
 
 **Deployment Execution**
+
 1. Save configuration changes
 2. Initiate deployment
 3. Monitor build logs for successful completion
@@ -114,6 +150,70 @@ wrangler pages secret put GITHUB_BRANCH
 
 The application is configured to serve from `index.html` in the repository root. This has been pre-configured in the current repository structure. No additional routing configuration is required for standard deployments.
 
+### 5. Alternative: Static-Only Deployment
+
+For simpler deployments without Cloudflare Functions, you can deploy the application as a static site. In this mode:
+
+- **Data Loading**: The application loads data directly from `restaurants.json` instead of API endpoints
+- **Read-Only Mode**: Admin panel is automatically hidden (no write operations available)
+- **Manual Updates**: Restaurant data must be updated by editing `restaurants.json` directly in GitHub
+- **Simpler Hosting**: Can be deployed to any static hosting service (GitHub Pages, Netlify, Vercel, etc.)
+
+#### Static Deployment Steps
+
+**Option A: GitHub Pages**
+
+1. Push `index.html` and `restaurants.json` to your repository
+2. Go to repository Settings → Pages
+3. Select source branch (e.g., `main`)
+4. Select root folder `/`
+5. Save and wait for deployment
+6. Access at `https://username.github.io/repository-name/`
+
+**Option B: Netlify**
+
+1. Connect your GitHub repository to Netlify
+2. Configure build settings:
+   - Build command: (leave empty)
+   - Publish directory: `/`
+3. Deploy the site
+4. Access at your assigned Netlify subdomain or custom domain
+
+**Option C: Vercel**
+
+1. Import your GitHub repository in Vercel
+2. Configure project settings:
+   - Framework Preset: Other
+   - Build Command: (leave empty)
+   - Output Directory: `/`
+3. Deploy the project
+4. Access at your assigned Vercel subdomain or custom domain
+
+#### Updating Restaurant Data in Static Mode
+
+To add, edit, or remove restaurants:
+
+1. Navigate to your repository on GitHub
+2. Click on `restaurants.json`
+3. Click the pencil icon to edit
+4. Make your changes following the data schema (see Data Schema section)
+5. Commit changes with a descriptive message
+6. Changes will be reflected on your site after deployment completes (usually within minutes)
+
+**Advantages of Static Mode:**
+- Simpler setup (no environment variables or API configuration)
+- Works with any static hosting service
+- No serverless function overhead
+- Completely free hosting options available
+
+**Limitations of Static Mode:**
+- No admin panel (all updates must be done via GitHub)
+- Manual JSON editing required
+- No built-in authentication system
+- Potential for JSON syntax errors when editing manually
+
+**Recommendation:** Use Cloudflare Functions deployment for team environments where multiple people need to manage restaurants. Use static deployment for personal use or simple setups where you're comfortable editing JSON files directly.
+
 ## Usage
 
 ### End-User Operations
@@ -132,6 +232,7 @@ The application is configured to serve from `index.html` in the repository root.
    - Special notes
 
 **Filter Behavior**:
+
 - **Service Type**: Defaults to "All Service Types" showing restaurants regardless of service method. Select a specific type to filter restaurants offering that service.
 - **Dining Profiles**: Profiles allow you to create custom restaurant subsets for specific scenarios. For example, if dining with someone who travels from a different location, create a profile with restaurants along their route. The "All Restaurants" profile includes all available options.
 - **Food Type Filters**: Multiple food types can be selected simultaneously. Restaurants matching any selected cuisine will be included.
@@ -201,18 +302,18 @@ The `restaurants.json` file maintains an array of restaurant objects with the fo
 
 #### Restaurant Field Specifications
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | Integer | Yes | Unique identifier, auto-incremented on creation |
-| `name` | String | Yes | Restaurant business name |
-| `foodTypes` | Array[String] | Yes | Cuisine categories for filtering |
-| `serviceTypes` | Array[String] | Yes | Available service options: "takeout", "delivery", "dine-in", "at-home" |
-| `profiles` | Array[String] | No | Profile IDs this restaurant is tagged with (empty array means no specific profiles) |
-| `orderMethod` | String | No | Instructions for ordering (e.g., "DoorDash", "call ahead", "online") |
-| `menuLink` | String | No | URL to the restaurant's menu |
-| `address` | String | No | Physical location address |
-| `phone` | String | No | Contact telephone number |
-| `notes` | String | No | Additional information about the restaurant |
+| Field          | Type          | Required | Description                                                                         |
+| -------------- | ------------- | -------- | ----------------------------------------------------------------------------------- |
+| `id`           | Integer       | Yes      | Unique identifier, auto-incremented on creation                                     |
+| `name`         | String        | Yes      | Restaurant business name                                                            |
+| `foodTypes`    | Array[String] | Yes      | Cuisine categories for filtering                                                    |
+| `serviceTypes` | Array[String] | Yes      | Available service options: "takeout", "delivery", "dine-in", "at-home"              |
+| `profiles`     | Array[String] | No       | Profile IDs this restaurant is tagged with (empty array means no specific profiles) |
+| `orderMethod`  | String        | No       | Instructions for ordering (e.g., "DoorDash", "call ahead", "online")                |
+| `menuLink`     | String        | No       | URL to the restaurant's menu                                                        |
+| `address`      | String        | No       | Physical location address                                                           |
+| `phone`        | String        | No       | Contact telephone number                                                            |
+| `notes`        | String        | No       | Additional information about the restaurant                                         |
 
 ### Profile Object Structure
 
@@ -239,10 +340,10 @@ The `restaurants.json` file also maintains an array of dining profile objects. P
 
 #### Profile Field Specifications
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | String | Yes | Unique identifier, generated from profile name (lowercase, hyphenated) |
-| `name` | String | Yes | Display name for the dining profile |
+| Field  | Type   | Required | Description                                                            |
+| ------ | ------ | -------- | ---------------------------------------------------------------------- |
+| `id`   | String | Yes      | Unique identifier, generated from profile name (lowercase, hyphenated) |
+| `name` | String | Yes      | Display name for the dining profile                                    |
 
 **Data Model**: Profiles are assigned to restaurants via the `profiles` array in each restaurant object, rather than profiles containing restaurant IDs. This restaurant-centric approach makes data management more intuitive and easier to maintain.
 
@@ -298,6 +399,7 @@ For manual data management, use this template to create or edit your `restaurant
 ```
 
 **Important Notes:**
+
 - Always include the "all" profile in your profiles array
 - Restaurant IDs must be unique integers
 - Profile IDs must use lowercase letters, numbers, and hyphens only
@@ -313,12 +415,14 @@ For manual data management, use this template to create or edit your `restaurant
 The application implements multiple security layers to protect data and prevent unauthorized access:
 
 **Authentication and Authorization:**
+
 - Administrative credentials stored as encrypted environment variables in Cloudflare
 - GitHub API token stored as encrypted secret
 - Token-based authentication for session management
 - Authentication required for all write operations (POST, DELETE)
 
 **Input Validation and Sanitization:**
+
 - Server-side validation of all incoming data
 - Type checking for arrays and required fields
 - Service type validation against allowed values (takeout, delivery, dine-in, at-home)
@@ -328,17 +432,20 @@ The application implements multiple security layers to protect data and prevent 
 - URL validation for menu links
 
 **Data Integrity:**
+
 - Cascade cleanup when profiles are deleted (removes profile references from restaurants)
 - SHA-based conflict detection for GitHub commits
 - Array existence checks before modification operations
 
 **Network Security:**
+
 - CORS headers configured for cross-origin resource sharing
 - **IMPORTANT: HTTPS Required** - All production deployments must use HTTPS to protect credentials in transit
 
 ### Production Recommendations
 
 For enterprise or high-security deployments, consider implementing:
+
 - JWT (JSON Web Tokens) with expiration for stateless authentication
 - OAuth 2.0 integration for identity management
 - Rate limiting on API endpoints to prevent brute force attacks
@@ -352,6 +459,7 @@ For enterprise or high-security deployments, consider implementing:
 ### Visual Styling Modifications
 
 **Color Scheme**
+
 - Primary gradient colors defined in CSS: `#667eea` and `#764ba2`
 - Wheel segment colors configured in JavaScript `CONFIG.WHEEL_COLORS` array
 - Modify these values in `index.html` for brand consistency
@@ -367,6 +475,7 @@ All wheel behavior parameters are centralized in the `CONFIG` constant at the to
 - `CACHE_MAX_AGE`: API response cache duration in seconds (default: 60)
 
 **Layout Dimensions**
+
 - Canvas dimensions: Controlled via `.wheel-container` CSS class
 - Responsive breakpoint: 768px (configured in media queries)
 
@@ -386,6 +495,7 @@ To add additional fields to restaurant records:
 **Symptom**: Restaurant data fails to load or displays empty state
 
 **Resolution Steps**:
+
 1. Verify `restaurants.json` exists in the repository root
 2. Confirm GitHub token has correct permissions:
    - Fine-grained: "Contents" repository permission with Read and Write access
@@ -400,6 +510,7 @@ To add additional fields to restaurant records:
 **Symptom**: Admin login rejected or returns unauthorized error
 
 **Resolution Steps**:
+
 1. Verify `ADMIN_PASSWORD` environment variable is configured
 2. Confirm password is case-sensitive and matches exactly
 3. Check browser developer console for authentication errors
@@ -411,6 +522,7 @@ To add additional fields to restaurant records:
 **Symptom**: Restaurant additions or deletions not saving
 
 **Resolution Steps**:
+
 1. Confirm `GITHUB_TOKEN` has write permissions for target repository
 2. Validate `GITHUB_REPO` format follows "username/repository" pattern
 3. Verify `GITHUB_BRANCH` matches the actual branch name in repository
@@ -424,6 +536,7 @@ To add additional fields to restaurant records:
 **Explanation**: The application enforces strict validation rules to maintain data integrity
 
 **Common Validation Rules**:
+
 - Service types must be one of: `takeout`, `delivery`, `dine-in`, or `at-home`
 - Profile IDs must contain only lowercase letters, numbers, and hyphens
 - Food types and service types must be provided as arrays
@@ -459,14 +572,17 @@ Note: Local development requires Node.js and npm to be installed.
 ## API Endpoints
 
 ### Authentication
+
 - **POST** `/api/auth` - Authenticate and receive session token
 
 ### Restaurant Operations
+
 - **GET** `/api/restaurants` - Retrieve all restaurant data
 - **POST** `/api/restaurants` - Create new restaurant (requires auth)
 - **DELETE** `/api/restaurants/:id` - Remove restaurant by ID (requires auth)
 
 ### Profile Operations
+
 - **GET** `/api/profiles` - Retrieve all dining profile data
 - **POST** `/api/profiles` - Create new dining profile (requires auth)
 - **DELETE** `/api/profiles/:id` - Remove profile by ID (requires auth)
@@ -488,30 +604,35 @@ All API endpoints return JSON responses and include appropriate CORS headers.
 The codebase implements several software engineering best practices:
 
 **Security:**
+
 - Input validation and sanitization at both client and server layers
 - XSS prevention through HTML escaping
 - CORS configuration for cross-origin requests
 - Secure token-based authentication
 
 **Code Organization:**
+
 - Configuration constants centralized in `CONFIG` object
 - Modular function design with single responsibilities
 - JSDoc-style documentation for functions
 - Descriptive variable and function naming conventions
 
 **Error Handling:**
+
 - Try-catch blocks for all async operations
 - Graceful fallbacks when API calls fail
 - User-friendly error messages
 - Validation errors with specific feedback
 
 **Data Integrity:**
+
 - SHA-based conflict detection for concurrent modifications
 - Cascade cleanup for referential integrity
 - Type validation for all data structures
 - Array existence checks before modifications
 
 **Performance:**
+
 - Request animation frame for smooth wheel animations
 - Easing functions for natural motion
 - Response caching with configurable TTL

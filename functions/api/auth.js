@@ -1,7 +1,7 @@
 /**
  * Authentication API Endpoint
  *
- * Validates administrative credentials and issues session tokens.
+ * Validates administrative credentials and issues session tokens with expiration.
  *
  * Endpoint: POST /api/auth
  *
@@ -13,16 +13,19 @@
  * Response:
  * {
  *   "authenticated": boolean,
- *   "token": string (base64-encoded session token)
+ *   "token": string (base64-encoded session token with timestamp)
  * }
  *
  * Environment Variables:
  * - ADMIN_PASSWORD: Administrative authentication credential
  *
- * Security Note:
- * Current implementation uses basic token generation. For production environments,
- * consider implementing JWT with expiration and refresh token mechanisms.
+ * Security Notes:
+ * - Tokens expire after 1 hour
+ * - Token includes timestamp for validation
+ * - Consider implementing rate limiting in production
  */
+
+import { getCorsHeaders, errorResponse, successResponse } from './_shared.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -32,41 +35,21 @@ export async function onRequestPost(context) {
 
     // Validate credentials against environment configuration
     if (password === env.ADMIN_PASSWORD) {
-      // Generate session token (timestamp-based for simplicity)
+      // Generate session token with timestamp for expiration
       const token = btoa(`${password}:${Date.now()}`);
 
-      return new Response(JSON.stringify({
-        authenticated: true,
-        token: token
-      }), {
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+      return successResponse(
+        {
+          authenticated: true,
+          token: token
+        },
+        env
+      );
     } else {
-      return new Response(JSON.stringify({
-        authenticated: false,
-        error: 'Invalid password'
-      }), {
-        status: 401,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+      return errorResponse('Invalid password', 401, env);
     }
   } catch (error) {
-    return new Response(JSON.stringify({
-      authenticated: false,
-      error: 'Invalid request'
-    }), {
-      status: 400,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return errorResponse('Invalid request', 400, env);
   }
 }
 
@@ -74,12 +57,8 @@ export async function onRequestPost(context) {
  * CORS Preflight Handler
  * Responds to OPTIONS requests for cross-origin resource sharing
  */
-export async function onRequestOptions() {
+export async function onRequestOptions(context) {
   return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    }
+    headers: getCorsHeaders(context.env)
   });
 }
