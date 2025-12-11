@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Picker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: none;
+        }
+
+        .container.active {
+            display: flex;
+            gap: 20px;
+        }
+
+        .main-content {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar {
+            width: 300px;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            margin: 0 auto 40px;
+        }
+
+        #wheelCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #ff6b6b;
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+            z-index: 10;
+        }
+
+        .controls {
+            text-align: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-small {
+            padding: 8px 20px;
+            font-size: 0.9em;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+            min-height: 100px;
+        }
+
+        .result h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .result p {
+            color: #6c757d;
+            margin: 5px 0;
+        }
+
+        .sidebar h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .profile-section {
+            margin-bottom: 30px;
+        }
+
+        .autocomplete-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .profile-section input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1em;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .profile-section input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .autocomplete-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .autocomplete-suggestions.active {
+            display: block;
+        }
+
+        .autocomplete-suggestion {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .autocomplete-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-suggestion:hover,
+        .autocomplete-suggestion.highlighted {
+            background: #f8f9fa;
+        }
+
+        .autocomplete-suggestion.selected {
+            background: #e7f3ff;
+            font-weight: 500;
+        }
+
+        .filter-group {
+            margin-bottom: 30px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 10px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 5px;
+            transition: background 0.2s;
+        }
+
+        .filter-group label:hover {
+            background: #f8f9fa;
+        }
+
+        .filter-group input[type="checkbox"] {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 0;
+            margin-left: 10px;
+            transition: transform 0.2s;
+            vertical-align: middle;
+        }
+
+        .btn-icon:hover {
+            transform: scale(1.2);
+        }
+
+        .admin-section {
+            border-top: 1px solid #dee2e6;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        /* Service Type Wheel Styles */
+        .service-wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+
+        #serviceWheelCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .wheel-pointer-small {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #ff6b6b;
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+            z-index: 10;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .admin-panel {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .form-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 5px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .checkbox-group label {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .restaurant-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .restaurant-item {
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .restaurant-item-info {
+            flex: 1;
+        }
+
+        .restaurant-item-name {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .restaurant-item-types {
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+
+        .login-form {
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container.active {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            .wheel-container {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1;
+                max-width: 400px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Service Type Wheel Modal -->
+    <div id="serviceWheelModal" class="modal">
+        <div class="modal-content">
+            <h2>Spin for Service Type!</h2>
+            <div class="service-wheel-container">
+                <div class="wheel-pointer-small"></div>
+                <canvas id="serviceWheelCanvas"></canvas>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn" id="spinServiceBtn" onclick="spinServiceWheel()">Spin!</button>
+                <button class="btn btn-secondary" style="margin-left: 10px;" onclick="closeServiceWheel()">Cancel</button>
+            </div>
+            <div id="serviceResult" style="margin-top: 20px; text-align: center; font-size: 1.2em; color: #667eea; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <h2>Admin Login</h2>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter admin password">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-success" onclick="login()">Login</button>
+                <button class="btn btn-secondary" onclick="closeLogin()">Cancel</button>
+            </div>
+            <div id="loginError" style="color: #dc3545; margin-top: 10px; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container active" id="mainContainer">
+        <div class="main-content">
+            <h1>Restaurant Picker</h1>
+
+            <div class="wheel-container">
+                <div class="wheel-pointer"></div>
+                <canvas id="wheelCanvas"></canvas>
+            </div>
+
+            <div class="controls">
+                <button class="btn" id="spinBtn" onclick="spin()">Spin to Select</button>
+            </div>
+
+            <div class="result" id="result">
+                <p style="color: #6c757d;">Select spin button to begin random selection</p>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h3>Service Type <button class="btn-icon" onclick="showServiceWheel()" title="Spin to choose service type">🎡</button></h3>
+            <div class="profile-section">
+                <select id="serviceTypeSelector" onchange="onServiceTypeChange()">
+                    <option value="all">All Service Types</option>
+                    <option value="takeout">Takeout</option>
+                    <option value="delivery">Delivery</option>
+                    <option value="dine-in">Dine In</option>
+                    <option value="at-home">At Home</option>
+                </select>
+            </div>
+
+            <h3>Dining Profile</h3>
+            <div class="profile-section">
+                <div class="autocomplete-wrapper">
+                    <input
+                        type="text"
+                        id="profileInput"
+                        placeholder="Type to search profiles..."
+                        autocomplete="off"
+                        oninput="handleProfileInput()"
+                        onfocus="handleProfileFocus()"
+                        onblur="handleProfileBlur()"
+                    >
+                    <div id="profileSuggestions" class="autocomplete-suggestions"></div>
+                </div>
+            </div>
+
+            <h3>Filter by Food Type</h3>
+            <div class="filter-group" id="foodTypeFilters">
+                <!-- Will be populated dynamically -->
+            </div>
+
+            <div class="admin-section">
+                <button class="btn btn-small" id="adminBtn" onclick="showLogin()">Admin Login</button>
+
+                <div id="adminPanel" class="admin-panel">
+                    <h3>Manage Restaurants</h3>
+
+                    <div class="form-group">
+                        <label>Restaurant Name</label>
+                        <input type="text" id="restaurantName" placeholder="Restaurant name">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Food Types (comma separated)</label>
+                        <input type="text" id="foodTypes" placeholder="Italian, Pizza">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Service Types</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" value="takeout" class="service-type-checkbox"> Takeout</label>
+                            <label><input type="checkbox" value="delivery" class="service-type-checkbox"> Delivery</label>
+                            <label><input type="checkbox" value="dine-in" class="service-type-checkbox"> Dine In</label>
+                            <label><input type="checkbox" value="at-home" class="service-type-checkbox"> At Home</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dining Profiles</label>
+                        <div class="checkbox-group" id="restaurantProfileCheckboxes">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>How to Order (optional)</label>
+                        <input type="text" id="orderMethod" placeholder="e.g., DoorDash, call, online">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Menu Link (optional)</label>
+                        <input type="text" id="menuLink" placeholder="https://restaurant.com/menu">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Address (optional)</label>
+                        <input type="text" id="address" placeholder="123 Main St">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phone (optional)</label>
+                        <input type="text" id="phone" placeholder="(555) 123-4567">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notes (optional)</label>
+                        <textarea id="notes" placeholder="Any special notes about this restaurant" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-family: inherit; resize: vertical;"></textarea>
+                    </div>
+
+                    <button class="btn btn-success btn-small" onclick="addRestaurant()">Add Restaurant</button>
+
+                    <div class="restaurant-list" id="restaurantList">
+                        <!-- Will be populated dynamically -->
+                    </div>
+
+                    <h3 style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">Manage Profiles</h3>
+
+                    <p style="color: #6c757d; font-size: 0.9em; margin-bottom: 15px;">Profiles are assigned to restaurants above. Create profile names here, then tag restaurants with them.</p>
+
+                    <div class="form-group">
+                        <label>Profile Name</label>
+                        <input type="text" id="profileName" placeholder="e.g., With Sarah">
+                    </div>
+
+                    <button class="btn btn-success btn-small" onclick="addProfile()">Add Profile</button>
+
+                    <div class="restaurant-list" id="profileList" style="margin-top: 20px;">
+                        <!-- Will be populated dynamically -->
+                    </div>
+
+                    <button class="btn btn-secondary btn-small" onclick="logout()" style="margin-top: 20px;">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let restaurants = [];
+        let profiles = [];
+        let selectedProfile = 'all';
+        let selectedService = 'all';
+        let currentRotation = 0;
+        let isSpinning = false;
+        let isAuthenticated = false;
+        let authToken = null;
+
+        // Configuration constants
+        const CONFIG = {
+            WHEEL_COLORS: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B88B', '#95E1D3'],
+            MIN_SPINS: 5,
+            MAX_SPINS: 8,
+            SPIN_DURATION: 4000, // milliseconds
+            CACHE_MAX_AGE: 60 // seconds
+        };
+
+        // Canvas and wheel variables
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const colors = CONFIG.WHEEL_COLORS;
+
+        /**
+         * Sanitize HTML to prevent XSS attacks
+         * Escapes special characters that could be interpreted as HTML
+         * @param {string} str - String to sanitize
+         * @returns {string} - Sanitized string safe for HTML insertion
+         */
+        function sanitizeHTML(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        /**
+         * Validate URL format
+         * @param {string} url - URL to validate
+         * @returns {boolean} - Whether URL is valid
+         */
+        function isValidURL(url) {
+            if (!url) return false;
+            try {
+                new URL(url);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        // Initialize
+        async function init() {
+            await loadRestaurants();
+            updateProfileInput();
+            updateFoodTypeFilters();
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            initServiceWheel();
+        }
+
+        // Service Type Wheel Functions
+        let serviceWheelRotation = 0;
+        let isServiceWheelSpinning = false;
+        const serviceTypes = [
+            { id: 'takeout', name: 'Takeout', color: '#FF6B6B' },
+            { id: 'delivery', name: 'Delivery', color: '#4ECDC4' },
+            { id: 'dine-in', name: 'Dine In', color: '#45B7D1' },
+            { id: 'at-home', name: 'At Home', color: '#F7DC6F' }
+        ];
+
+        function initServiceWheel() {
+            const canvas = document.getElementById('serviceWheelCanvas');
+            const container = document.querySelector('.service-wheel-container');
+            if (!canvas || !container) return;
+
+            const size = Math.min(container.offsetWidth, container.offsetHeight);
+            canvas.width = size;
+            canvas.height = size;
+            drawServiceWheel();
+        }
+
+        function showServiceWheel() {
+            document.getElementById('serviceWheelModal').classList.add('active');
+            document.getElementById('serviceResult').textContent = '';
+            initServiceWheel();
+        }
+
+        function closeServiceWheel() {
+            document.getElementById('serviceWheelModal').classList.remove('active');
+        }
+
+        function drawServiceWheel() {
+            const canvas = document.getElementById('serviceWheelCanvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const numSegments = serviceTypes.length;
+            const anglePerSegment = (2 * Math.PI) / numSegments;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            serviceTypes.forEach((type, i) => {
+                const startAngle = i * anglePerSegment + serviceWheelRotation;
+                const endAngle = (i + 1) * anglePerSegment + serviceWheelRotation;
+
+                // Draw segment
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = type.color;
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + anglePerSegment / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText(type.name, radius - 15, 5);
+                ctx.restore();
+            });
+
+            // Draw center circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        function spinServiceWheel() {
+            if (isServiceWheelSpinning) return;
+
+            isServiceWheelSpinning = true;
+            document.getElementById('spinServiceBtn').disabled = true;
+            document.getElementById('serviceResult').textContent = '';
+
+            const numSegments = serviceTypes.length;
+            const anglePerSegment = (2 * Math.PI) / numSegments;
+
+            // Random spin
+            const spins = 3 + Math.random() * 3; // 3-6 spins
+            const randomAngle = Math.random() * 2 * Math.PI;
+            const totalRotation = spins * 2 * Math.PI + randomAngle;
+
+            const duration = 3000; // 3 seconds
+            const startTime = Date.now();
+            const startRotation = serviceWheelRotation;
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing function (ease out)
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+
+                serviceWheelRotation = startRotation + totalRotation * easeOut;
+                drawServiceWheel();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isServiceWheelSpinning = false;
+                    document.getElementById('spinServiceBtn').disabled = false;
+                    showServiceResult(numSegments, anglePerSegment);
+                }
+            }
+
+            animate();
+        }
+
+        function showServiceResult(numSegments, anglePerSegment) {
+            const normalizedRotation = (serviceWheelRotation % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+            const pointerAngle = 3 * Math.PI / 2; // Pointer is at top (270 degrees in canvas coords)
+            const selectedAngle = (2 * Math.PI - normalizedRotation + pointerAngle) % (2 * Math.PI);
+            const selectedIndex = Math.floor(selectedAngle / anglePerSegment) % numSegments;
+            const selectedType = serviceTypes[selectedIndex];
+
+            document.getElementById('serviceResult').textContent = `🎉 ${selectedType.name}!`;
+
+            // Update the dropdown to match
+            selectedService = selectedType.id;
+            document.getElementById('serviceTypeSelector').value = selectedType.id;
+
+            // Update the main wheel after a short delay
+            setTimeout(() => {
+                drawWheel();
+                closeServiceWheel();
+            }, 2000);
+        }
+
+        // Load restaurants from API
+        async function loadRestaurants() {
+            try {
+                const response = await fetch('/api/restaurants');
+                const data = await response.json();
+                restaurants = data.restaurants || [];
+                profiles = data.profiles || [{id: 'all', name: 'All Restaurants'}];
+            } catch (error) {
+                console.error('Error loading restaurants:', error);
+                // Fallback to local data
+                restaurants = [
+                    {id: 1, name: "Mario's Italian Bistro", foodTypes: ["Italian", "Pizza"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or DoorDash", menuLink: "", notes: ""},
+                    {id: 2, name: "Golden Dragon", foodTypes: ["Chinese", "Asian"], serviceTypes: ["takeout", "delivery"], profiles: [], orderMethod: "Phone", menuLink: "", notes: ""},
+                    {id: 3, name: "Taco Fiesta", foodTypes: ["Mexican", "Latin"], serviceTypes: ["takeout", "dine-in"], profiles: [], orderMethod: "Call ahead", menuLink: "", notes: ""},
+                    {id: 4, name: "Burger Palace", foodTypes: ["American", "Burgers"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or app", menuLink: "", notes: ""},
+                    {id: 5, name: "Sushi Paradise", foodTypes: ["Japanese", "Asian", "Sushi"], serviceTypes: ["takeout", "delivery", "dine-in"], profiles: [], orderMethod: "Call or online", menuLink: "", notes: ""}
+                ];
+                profiles = [{id: 'all', name: 'All Restaurants'}];
+            }
+        }
+
+        /**
+         * Handle service type selector change
+         * Updates selected service type and redraws wheel with filtered restaurants
+         */
+        function onServiceTypeChange() {
+            selectedService = document.getElementById('serviceTypeSelector').value;
+            drawWheel();
+        }
+
+        // Profile management
+        /**
+         * Update the profile input field to show the current selection
+         */
+        function updateProfileInput() {
+            const input = document.getElementById('profileInput');
+            const currentProfile = profiles.find(p => p.id === selectedProfile);
+            if (currentProfile) {
+                input.value = currentProfile.name;
+            }
+        }
+
+        /**
+         * Handle input changes in the profile autocomplete field
+         * Shows filtered suggestions based on user input
+         */
+        function handleProfileInput() {
+            const input = document.getElementById('profileInput');
+            const suggestionsContainer = document.getElementById('profileSuggestions');
+            const searchTerm = input.value.toLowerCase().trim();
+
+            // Filter profiles based on search term
+            const filteredProfiles = profiles.filter(profile =>
+                profile.name.toLowerCase().includes(searchTerm)
+            );
+
+            // Clear and populate suggestions
+            suggestionsContainer.innerHTML = '';
+
+            if (searchTerm === '' || filteredProfiles.length === 0) {
+                suggestionsContainer.classList.remove('active');
+                return;
+            }
+
+            filteredProfiles.forEach(profile => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-suggestion';
+                if (profile.id === selectedProfile) {
+                    div.classList.add('selected');
+                }
+                div.textContent = profile.name;
+                div.onclick = () => selectProfile(profile.id, profile.name);
+                suggestionsContainer.appendChild(div);
+            });
+
+            suggestionsContainer.classList.add('active');
+        }
+
+        /**
+         * Handle focus on the profile input field
+         * Shows all available profiles
+         */
+        function handleProfileFocus() {
+            const input = document.getElementById('profileInput');
+            const suggestionsContainer = document.getElementById('profileSuggestions');
+
+            // Show all profiles when focused
+            suggestionsContainer.innerHTML = '';
+
+            profiles.forEach(profile => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-suggestion';
+                if (profile.id === selectedProfile) {
+                    div.classList.add('selected');
+                }
+                div.textContent = profile.name;
+                div.onclick = () => selectProfile(profile.id, profile.name);
+                suggestionsContainer.appendChild(div);
+            });
+
+            suggestionsContainer.classList.add('active');
+        }
+
+        /**
+         * Handle blur event on the profile input field
+         * Hides suggestions after a short delay (to allow click events to fire)
+         */
+        function handleProfileBlur() {
+            setTimeout(() => {
+                const suggestionsContainer = document.getElementById('profileSuggestions');
+                suggestionsContainer.classList.remove('active');
+            }, 200);
+        }
+
+        /**
+         * Select a profile from the autocomplete suggestions
+         * @param {string} profileId - The ID of the selected profile
+         * @param {string} profileName - The display name of the selected profile
+         */
+        function selectProfile(profileId, profileName) {
+            selectedProfile = profileId;
+            const input = document.getElementById('profileInput');
+            input.value = profileName;
+            const suggestionsContainer = document.getElementById('profileSuggestions');
+            suggestionsContainer.classList.remove('active');
+            drawWheel();
+        }
+
+        /**
+         * Get filtered restaurants based on current filter selections
+         * @returns {Array} - Filtered array of restaurant objects
+         */
+        function getFilteredRestaurants() {
+            const selectedFoodTypes = Array.from(document.querySelectorAll('#foodTypeFilters input:checked'))
+                .map(cb => cb.value);
+
+            return restaurants.filter(r => {
+                // Filter by profile (if specific profile selected)
+                // "all" profile shows all restaurants, otherwise check if restaurant has the profile tag
+                if (selectedProfile !== 'all') {
+                    if (!r.profiles || !r.profiles.includes(selectedProfile)) {
+                        return false;
+                    }
+                }
+
+                // Filter by service type
+                // "all" shows all service types, otherwise check if restaurant offers the selected service type
+                if (selectedService !== 'all') {
+                    if (!r.serviceTypes || !r.serviceTypes.includes(selectedService)) {
+                        return false;
+                    }
+                }
+
+                // Filter by food types (if any are selected)
+                if (selectedFoodTypes.length > 0) {
+                    return r.foodTypes.some(ft => selectedFoodTypes.includes(ft));
+                }
+
+                return true;
+            });
+        }
+
+        // Update food type filters
+        function updateFoodTypeFilters() {
+            const allFoodTypes = new Set();
+            restaurants.forEach(r => {
+                r.foodTypes.forEach(ft => allFoodTypes.add(ft));
+            });
+
+            const container = document.getElementById('foodTypeFilters');
+            container.innerHTML = '';
+
+            Array.from(allFoodTypes).sort().forEach(foodType => {
+                const label = document.createElement('label');
+                label.innerHTML = `
+                    <input type="checkbox" value="${foodType}" onchange="drawWheel()">
+                    ${foodType}
+                `;
+                container.appendChild(label);
+            });
+        }
+
+        // Canvas setup
+        function resizeCanvas() {
+            const container = document.querySelector('.wheel-container');
+            const size = Math.min(container.offsetWidth, container.offsetHeight);
+            canvas.width = size;
+            canvas.height = size;
+            drawWheel();
+        }
+
+        // Draw the wheel
+        function drawWheel() {
+            const filteredRestaurants = getFilteredRestaurants();
+
+            if (filteredRestaurants.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#f8f9fa';
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, 2 * Math.PI);
+                ctx.fill();
+
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('No restaurants available', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            const numSegments = filteredRestaurants.length;
+            const anglePerSegment = (2 * Math.PI) / numSegments;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            filteredRestaurants.forEach((restaurant, i) => {
+                const startAngle = i * anglePerSegment + currentRotation;
+                const endAngle = (i + 1) * anglePerSegment + currentRotation;
+
+                // Draw segment
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + anglePerSegment / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText(restaurant.name, radius - 20, 5);
+                ctx.restore();
+            });
+
+            // Draw center circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        // Spin the wheel
+        function spin() {
+            if (isSpinning) return;
+
+            const filteredRestaurants = getFilteredRestaurants();
+            if (filteredRestaurants.length === 0) {
+                alert('No restaurants available with current filters!');
+                return;
+            }
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            const numSegments = filteredRestaurants.length;
+            const anglePerSegment = (2 * Math.PI) / numSegments;
+
+            // Random spin calculation using configuration constants
+            const spins = CONFIG.MIN_SPINS + Math.random() * (CONFIG.MAX_SPINS - CONFIG.MIN_SPINS);
+            const randomAngle = Math.random() * 2 * Math.PI;
+            const totalRotation = spins * 2 * Math.PI + randomAngle;
+
+            const duration = CONFIG.SPIN_DURATION;
+            const startTime = Date.now();
+            const startRotation = currentRotation;
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing function (ease out)
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+
+                currentRotation = startRotation + totalRotation * easeOut;
+                drawWheel();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isSpinning = false;
+                    document.getElementById('spinBtn').disabled = false;
+                    showResult(filteredRestaurants, numSegments, anglePerSegment);
+                }
+            }
+
+            animate();
+        }
+
+        /**
+         * Display selected restaurant result with sanitized content
+         * @param {Array} filteredRestaurants - Array of filtered restaurant objects
+         * @param {number} numSegments - Number of wheel segments
+         * @param {number} anglePerSegment - Angle per segment in radians
+         */
+        function showResult(filteredRestaurants, numSegments, anglePerSegment) {
+            const normalizedRotation = (currentRotation % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+            const pointerAngle = 3 * Math.PI / 2; // Pointer is at top (270 degrees in canvas coords)
+            const selectedAngle = (2 * Math.PI - normalizedRotation + pointerAngle) % (2 * Math.PI);
+            const selectedIndex = Math.floor(selectedAngle / anglePerSegment) % numSegments;
+            const winner = filteredRestaurants[selectedIndex];
+
+            const resultDiv = document.getElementById('result');
+
+            // Build result HTML with sanitized content to prevent XSS
+            let html = `<h2>Selected: ${sanitizeHTML(winner.name)}</h2>`;
+            html += `<p><strong>Food Types:</strong> ${winner.foodTypes.map(ft => sanitizeHTML(ft)).join(', ')}</p>`;
+
+            if (winner.orderMethod) {
+                html += `<p><strong>How to Order:</strong> ${sanitizeHTML(winner.orderMethod)}</p>`;
+            }
+
+            if (winner.menuLink && isValidURL(winner.menuLink)) {
+                html += `<p><strong>Menu:</strong> <a href="${sanitizeHTML(winner.menuLink)}" target="_blank" rel="noopener noreferrer">View Menu</a></p>`;
+            }
+
+            if (winner.address) {
+                html += `<p><strong>Address:</strong> ${sanitizeHTML(winner.address)}</p>`;
+            }
+
+            if (winner.phone) {
+                html += `<p><strong>Phone:</strong> ${sanitizeHTML(winner.phone)}</p>`;
+            }
+
+            if (winner.notes) {
+                html += `<p><strong>Notes:</strong> ${sanitizeHTML(winner.notes)}</p>`;
+            }
+
+            resultDiv.innerHTML = html;
+        }
+
+        // Authentication
+        function showLogin() {
+            document.getElementById('loginModal').classList.add('active');
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        function closeLogin() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
+
+        async function login() {
+            const password = document.getElementById('adminPassword').value;
+
+            try {
+                const response = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await response.json();
+
+                if (data.authenticated) {
+                    isAuthenticated = true;
+                    authToken = data.token;
+                    document.getElementById('loginModal').classList.remove('active');
+                    document.getElementById('adminPanel').classList.add('active');
+                    document.getElementById('adminBtn').style.display = 'none';
+                    updateRestaurantList();
+                    updateProfileList();
+                } else {
+                    document.getElementById('loginError').textContent = 'Invalid password';
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('loginError').textContent = 'Login failed';
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        function logout() {
+            isAuthenticated = false;
+            authToken = null;
+            document.getElementById('adminPanel').classList.remove('active');
+            document.getElementById('adminBtn').style.display = 'block';
+        }
+
+        // Add restaurant
+        async function addRestaurant() {
+            const name = document.getElementById('restaurantName').value.trim();
+            const foodTypesInput = document.getElementById('foodTypes').value.trim();
+            const orderMethod = document.getElementById('orderMethod').value.trim();
+            const menuLink = document.getElementById('menuLink').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+
+            const serviceTypes = Array.from(document.querySelectorAll('.service-type-checkbox:checked'))
+                .map(cb => cb.value);
+
+            const selectedProfiles = Array.from(document.querySelectorAll('.restaurant-profile-checkbox:checked'))
+                .map(cb => cb.value);
+
+            if (!name || !foodTypesInput || serviceTypes.length === 0) {
+                alert('Please fill in name, food types, and at least one service type');
+                return;
+            }
+
+            const foodTypes = foodTypesInput.split(',').map(s => s.trim());
+
+            const newRestaurant = {
+                id: Math.max(...restaurants.map(r => r.id), 0) + 1,
+                name,
+                foodTypes,
+                serviceTypes,
+                profiles: selectedProfiles,
+                orderMethod,
+                menuLink,
+                address,
+                phone,
+                notes
+            };
+
+            try {
+                const response = await fetch('/api/restaurants', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(newRestaurant)
+                });
+
+                if (response.ok) {
+                    await loadRestaurants();
+                    updateFoodTypeFilters();
+                    updateRestaurantList();
+                    drawWheel();
+
+                    // Clear form
+                    document.getElementById('restaurantName').value = '';
+                    document.getElementById('foodTypes').value = '';
+                    document.getElementById('orderMethod').value = '';
+                    document.getElementById('menuLink').value = '';
+                    document.getElementById('address').value = '';
+                    document.getElementById('phone').value = '';
+                    document.getElementById('notes').value = '';
+                    document.querySelectorAll('.service-type-checkbox').forEach(cb => cb.checked = false);
+                    document.querySelectorAll('.restaurant-profile-checkbox').forEach(cb => cb.checked = false);
+                } else {
+                    alert('Failed to add restaurant');
+                }
+            } catch (error) {
+                console.error('Error adding restaurant:', error);
+                alert('Failed to add restaurant');
+            }
+        }
+
+        // Delete restaurant
+        async function deleteRestaurant(id) {
+            if (!confirm('Are you sure you want to delete this restaurant?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/restaurants/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    await loadRestaurants();
+                    updateFoodTypeFilters();
+                    updateRestaurantList();
+                    drawWheel();
+                } else {
+                    alert('Failed to delete restaurant');
+                }
+            } catch (error) {
+                console.error('Error deleting restaurant:', error);
+                alert('Failed to delete restaurant');
+            }
+        }
+
+        /**
+         * Update restaurant list in admin panel with sanitized content
+         */
+        function updateRestaurantList() {
+            const container = document.getElementById('restaurantList');
+            container.innerHTML = '<h4 style="margin-bottom: 10px;">Current Restaurants:</h4>';
+
+            restaurants.forEach(r => {
+                const profileTags = r.profiles && r.profiles.length > 0
+                    ? r.profiles.map(p => sanitizeHTML(p)).join(', ')
+                    : 'No profiles';
+                const item = document.createElement('div');
+                item.className = 'restaurant-item';
+                item.innerHTML = `
+                    <div class="restaurant-item-info">
+                        <div class="restaurant-item-name">${sanitizeHTML(r.name)}</div>
+                        <div class="restaurant-item-types">${r.foodTypes.map(ft => sanitizeHTML(ft)).join(', ')} • ${r.serviceTypes.map(st => sanitizeHTML(st)).join(', ')}</div>
+                        <div class="restaurant-item-types" style="font-size: 0.8em; margin-top: 3px;">Profiles: ${profileTags}</div>
+                    </div>
+                    <button class="btn btn-danger btn-small" onclick="deleteRestaurant(${r.id})">Delete</button>
+                `;
+                container.appendChild(item);
+            });
+
+            // Update profile checkboxes in restaurant form
+            updateRestaurantProfileCheckboxes();
+        }
+
+        // Populate profile checkboxes in restaurant form
+        function updateRestaurantProfileCheckboxes() {
+            const container = document.getElementById('restaurantProfileCheckboxes');
+            container.innerHTML = '';
+
+            // Filter out 'all' profile as it's not a taggable profile
+            const taggableProfiles = profiles.filter(p => p.id !== 'all');
+
+            if (taggableProfiles.length === 0) {
+                container.innerHTML = '<p style="color: #6c757d; font-size: 0.9em;">No profiles created yet</p>';
+                return;
+            }
+
+            taggableProfiles.forEach(profile => {
+                const label = document.createElement('label');
+                label.innerHTML = `
+                    <input type="checkbox" value="${profile.id}" class="restaurant-profile-checkbox">
+                    ${profile.name}
+                `;
+                container.appendChild(label);
+            });
+        }
+
+        async function addProfile() {
+            const name = document.getElementById('profileName').value.trim();
+
+            if (!name) {
+                alert('Please enter a profile name');
+                return;
+            }
+
+            // Generate profile ID from name
+            const profileId = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+            // Check if profile already exists
+            if (profiles.find(p => p.id === profileId)) {
+                alert('A profile with this name already exists');
+                return;
+            }
+
+            const newProfile = {
+                id: profileId,
+                name: name
+            };
+
+            try {
+                const response = await fetch('/api/profiles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(newProfile)
+                });
+
+                if (response.ok) {
+                    await loadRestaurants();
+                    updateProfileInput();
+                    updateProfileList();
+                    updateRestaurantProfileCheckboxes();
+
+                    // Clear form
+                    document.getElementById('profileName').value = '';
+                } else {
+                    alert('Failed to add profile');
+                }
+            } catch (error) {
+                console.error('Error adding profile:', error);
+                alert('Failed to add profile');
+            }
+        }
+
+        async function deleteProfile(profileId) {
+            // Prevent deletion of "all" profile
+            if (profileId === 'all') {
+                alert('Cannot delete the default "All Restaurants" profile');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to delete this profile?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/profiles/${profileId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    await loadRestaurants();
+                    updateProfileInput();
+                    updateProfileList();
+
+                    // Reset to "all" if deleted profile was selected
+                    if (selectedProfile === profileId) {
+                        selectedProfile = 'all';
+                        updateProfileInput();
+                        drawWheel();
+                    }
+                } else {
+                    alert('Failed to delete profile');
+                }
+            } catch (error) {
+                console.error('Error deleting profile:', error);
+                alert('Failed to delete profile');
+            }
+        }
+
+        /**
+         * Update profile list in admin panel with sanitized content
+         */
+        function updateProfileList() {
+            const container = document.getElementById('profileList');
+            container.innerHTML = '<h4 style="margin-bottom: 10px;">Current Profiles:</h4>';
+
+            profiles.filter(p => p.id !== 'all').forEach(profile => {
+                // Find restaurants tagged with this profile
+                const taggedRestaurants = restaurants
+                    .filter(r => r.profiles && r.profiles.includes(profile.id))
+                    .map(r => sanitizeHTML(r.name));
+
+                const restaurantNames = taggedRestaurants.length > 0
+                    ? taggedRestaurants.join(', ')
+                    : 'No restaurants tagged';
+
+                const item = document.createElement('div');
+                item.className = 'restaurant-item';
+                item.innerHTML = `
+                    <div class="restaurant-item-info">
+                        <div class="restaurant-item-name">${sanitizeHTML(profile.name)}</div>
+                        <div class="restaurant-item-types" style="font-size: 0.85em;">${restaurantNames}</div>
+                    </div>
+                    <button class="btn btn-danger btn-small" onclick="deleteProfile('${sanitizeHTML(profile.id)}')">Delete</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>

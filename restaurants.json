@@ -1,0 +1,114 @@
+{
+  "profiles": [
+    {
+      "id": "all",
+      "name": "All Restaurants"
+    },
+    {
+      "id": "date-night",
+      "name": "Date Night"
+    },
+    {
+      "id": "quick-lunch",
+      "name": "Quick Lunch"
+    }
+  ],
+  "restaurants": [
+    {
+      "id": 1,
+      "name": "The Italian Corner",
+      "foodTypes": ["Italian", "Pizza"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["date-night"],
+      "orderMethod": "Call (555) 123-4567 or DoorDash",
+      "menuLink": "https://example.com/menu",
+      "address": "123 Main Street",
+      "phone": "(555) 123-4567",
+      "notes": "Great wine selection, reservations recommended on weekends"
+    },
+    {
+      "id": 2,
+      "name": "Spice of India",
+      "foodTypes": ["Indian"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["date-night"],
+      "orderMethod": "Grubhub or phone",
+      "menuLink": "https://example.com/spiceofindia",
+      "address": "456 Oak Avenue",
+      "phone": "(555) 234-5678",
+      "notes": "Lunch buffet weekdays 11am-2pm, extensive vegetarian options"
+    },
+    {
+      "id": 3,
+      "name": "Taco Fiesta",
+      "foodTypes": ["Mexican"],
+      "serviceTypes": ["takeout", "dine-in"],
+      "profiles": ["quick-lunch"],
+      "orderMethod": "Call ahead for takeout",
+      "menuLink": "https://example.com/tacofiesta",
+      "address": "789 Pine Road",
+      "phone": "(555) 345-6789",
+      "notes": "Try the fish tacos, homemade salsas"
+    },
+    {
+      "id": 4,
+      "name": "Bangkok Street Kitchen",
+      "foodTypes": ["Thai"],
+      "serviceTypes": ["takeout", "delivery"],
+      "profiles": ["quick-lunch"],
+      "orderMethod": "Uber Eats, DoorDash, or call",
+      "menuLink": "https://example.com/bangkokstreet",
+      "address": "321 Elm Street",
+      "phone": "(555) 456-7890",
+      "notes": "Spice levels 1-5, ask for Thai hot if you like it spicy"
+    },
+    {
+      "id": 5,
+      "name": "Sakura Sushi",
+      "foodTypes": ["Japanese"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": ["date-night"],
+      "orderMethod": "Online at sakura-sushi.example.com or phone",
+      "menuLink": "https://example.com/sakura",
+      "address": "654 Maple Drive",
+      "phone": "(555) 567-8901",
+      "notes": "Fresh fish daily, ask about omakase options"
+    },
+    {
+      "id": 6,
+      "name": "Mediterranean Grill",
+      "foodTypes": ["Mediterranean/Middle Eastern"],
+      "serviceTypes": ["takeout", "delivery", "dine-in"],
+      "profiles": [],
+      "orderMethod": "Call or walk-in",
+      "menuLink": "https://example.com/medgrill",
+      "address": "258 Birch Way",
+      "phone": "(555) 678-9012",
+      "notes": "Family-owned, try the lamb shawarma and falafel"
+    },
+    {
+      "id": 7,
+      "name": "Homemade Pasta Night",
+      "foodTypes": ["Italian"],
+      "serviceTypes": ["at-home"],
+      "profiles": ["date-night"],
+      "orderMethod": "Cook at home",
+      "menuLink": "",
+      "address": "",
+      "phone": "",
+      "notes": "Make fresh pasta with your favorite sauce. ~45 min prep time"
+    },
+    {
+      "id": 8,
+      "name": "Stir-Fry",
+      "foodTypes": ["Chinese"],
+      "serviceTypes": ["at-home"],
+      "profiles": ["quick-lunch"],
+      "orderMethod": "Cook at home",
+      "menuLink": "",
+      "address": "",
+      "phone": "",
+      "notes": "Quick and healthy, use whatever vegetables you have. ~20 min"
+    }
+  ]
+}
